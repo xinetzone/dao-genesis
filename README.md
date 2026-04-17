@@ -137,6 +137,10 @@ python scripts/manage_memory.py update REV-20260417-001 --field action_items --v
 python scripts/manage_memory.py archive REV-20260417-001
 ```
 
+**其他自动化脚本：**
+- `scripts/migrate_memory.py`: 用于处理 Schema 升级时的旧数据自动化迁移。
+- `scripts/build_memory_cache.py`: 提取活跃复盘记录的摘要并生成检索缓存索引 (`.cache/reviews/search_index.json`)，用于极大降低长周期检索时的 Token 消耗。
+
 ---
 
 ## 📂 仓库结构 (Repository Structure)
