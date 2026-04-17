@@ -51,33 +51,60 @@ def cmd_init(args):
     
     print(f"[Sync] 成功初始化全局记忆库：{global_dir}")
 
-def cmd_pull(args):
+def pull_global_memory():
     global_dir = MEMORY_GLOBAL_ROOT
     if not (global_dir / ".git").exists():
-        print(f"[Sync] 错误：未找到全局记忆库。请先使用 `python scripts/sync_global.py init <repo_url>` 初始化。")
-        sys.exit(1)
+        raise Exception("未找到全局记忆库。请先使用 `python scripts/sync_global.py init <repo_url>` 初始化。")
         
-    print("[Sync] 正在拉取全局记忆...")
     subprocess.run(["git", "pull", "--rebase"], cwd=str(global_dir), check=True)
-    print("[Sync] 成功拉取最新全局记忆。")
+    return "成功拉取最新全局记忆"
 
-def cmd_push(args):
+def cmd_pull(args):
+    print("[Sync] 正在拉取全局记忆...")
+    try:
+        msg = pull_global_memory()
+        print(f"[Sync] {msg}。")
+    except Exception as e:
+        print(f"[Sync] 错误：{e}", file=sys.stderr)
+        sys.exit(1)
+
+def push_global_memory():
     global_dir = MEMORY_GLOBAL_ROOT
     if not (global_dir / ".git").exists():
-        print(f"[Sync] 错误：未找到全局记忆库。请先使用 `python scripts/sync_global.py init <repo_url>` 初始化。")
-        sys.exit(1)
+        raise Exception("未找到全局记忆库。请先使用 `python scripts/sync_global.py init <repo_url>` 初始化。")
         
     status_output = run_git_cmd(["git", "status", "--porcelain"], cwd=global_dir)
     if not status_output:
-        print("[Sync] 无需推送，全局记忆库已是最新（无未提交更改）。")
-        return
+        return "无需推送，全局记忆库已是最新（无未提交更改）"
         
-    print("[Sync] 发现本地更改，正在推送...")
     run_git_cmd(["git", "add", "."], cwd=global_dir)
     run_git_cmd(["git", "commit", "-m", "chore(memory): auto-sync global memory"], cwd=global_dir)
     subprocess.run(["git", "push"], cwd=str(global_dir), check=True)
+    return "成功将本地更改推送到全局记忆库"
+
+def cmd_push(args):
+    try:
+        msg = push_global_memory()
+        print(f"[Sync] {msg}。")
+    except Exception as e:
+        print(f"[Sync] 错误：{e}", file=sys.stderr)
+        sys.exit(1)
+
+def share_local_record(review_id: str):
+    global_dir = MEMORY_GLOBAL_ROOT
+    global_reviews_dir = global_dir / "reviews"
     
-    print("[Sync] 成功将本地更改推送到全局记忆库。")
+    if not global_reviews_dir.exists():
+        raise Exception("未找到全局 reviews 目录，请先确保全局目录已初始化。")
+        
+    local_file = REVIEWS_DIR / f"{review_id}.json"
+    global_file = global_reviews_dir / f"{review_id}.json"
+    
+    if not local_file.exists():
+        raise Exception(f"本地记录 {review_id} 不存在。")
+        
+    shutil.copy2(local_file, global_file)
+    return f"成功将 {review_id} 共享到全局记忆目录"
 
 def cmd_share(args):
     """Copy a local review to the global memory directory."""
@@ -85,27 +112,12 @@ def cmd_share(args):
     if not isinstance(review_ids, list):
         review_ids = [review_ids]
         
-    global_dir = MEMORY_GLOBAL_ROOT
-    global_reviews_dir = global_dir / "reviews"
-    
-    if not global_reviews_dir.exists():
-        print(f"[Sync] 错误：未找到全局 reviews 目录，请先确保全局目录已初始化。")
-        sys.exit(1)
-        
     for review_id in review_ids:
-        local_file = REVIEWS_DIR / f"{review_id}.json"
-        global_file = global_reviews_dir / f"{review_id}.json"
-        
-        if not local_file.exists():
-            print(f"[Share] 错误：本地记录 {review_id} 不存在。")
-            continue
-            
-        # Copy to global directory
         try:
-            shutil.copy2(local_file, global_file)
-            print(f"[Share] 成功将 {review_id} 共享到全局记忆目录。")
+            msg = share_local_record(review_id)
+            print(f"[Share] {msg}。")
         except Exception as e:
-            print(f"[Share] 复制 {review_id} 失败：{e}", file=sys.stderr)
+            print(f"[Share] 错误：{e}", file=sys.stderr)
             
     print("\n[Share] 提示：执行 `python scripts/sync_global.py push` 将共享的记录推送到云端。")
 

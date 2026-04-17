@@ -11,6 +11,7 @@ const app = createApp({
         const loading = ref(true);
         const selectedReviewId = ref(null);
         const selectedRecord = ref(null);
+        const syncing = ref(false);
 
         // Fetch index on load
         const fetchIndex = async () => {
@@ -174,6 +175,50 @@ const app = createApp({
             });
         };
 
+        const syncPull = async () => {
+            syncing.value = 'pull';
+            try {
+                const res = await fetch(`${API_BASE}/sync/pull`, { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) alert(data.message);
+                else alert("Error: " + data.error);
+            } catch(e) {
+                alert("Network error");
+            } finally {
+                syncing.value = false;
+            }
+        };
+
+        const syncPush = async () => {
+            syncing.value = 'push';
+            try {
+                const res = await fetch(`${API_BASE}/sync/push`, { method: 'POST' });
+                const data = await res.json();
+                if (res.ok) alert(data.message);
+                else alert("Error: " + data.error);
+            } catch(e) {
+                alert("Network error");
+            } finally {
+                syncing.value = false;
+            }
+        };
+
+        const shareRecord = async () => {
+            if (!selectedRecord.value) return;
+            try {
+                const res = await fetch(`${API_BASE}/sync/share`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ review_id: selectedRecord.value.review_id })
+                });
+                const data = await res.json();
+                if (res.ok) alert(data.message);
+                else alert("Error: " + data.error);
+            } catch(e) {
+                alert("Network error");
+            }
+        };
+
         watch(currentTab, (newTab) => {
             if (newTab === 'analytics') {
                 setTimeout(renderCharts, 100);
@@ -185,8 +230,9 @@ const app = createApp({
         });
 
         return {
-            currentTab, searchQuery, filterStatus, records, filteredRecords, loading,
-            selectedReviewId, selectedRecord, selectRecord, formatDate, archiveRecord, addListItem
+            currentTab, searchQuery, filterStatus, records, filteredRecords, loading, syncing,
+            selectedReviewId, selectedRecord, selectRecord, formatDate, archiveRecord, addListItem,
+            syncPull, syncPush, shareRecord
         };
     }
 });

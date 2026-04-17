@@ -26,7 +26,17 @@
                 <i class="fa-solid fa-brain text-2xl"></i>
                 <h1 class="text-xl font-bold tracking-wider">dao-genesis <span class="font-light text-indigo-200">| Memory Dashboard</span></h1>
             </div>
-            <div class="flex space-x-4 text-sm">
+            <div class="flex space-x-4 text-sm items-center">
+                <!-- Sync Buttons -->
+                <div class="flex bg-indigo-700 rounded-lg overflow-hidden mr-4">
+                    <button @click="syncPull" :disabled="syncing" class="px-3 py-2 hover:bg-indigo-800 transition border-r border-indigo-600 disabled:opacity-50" title="Pull from Global Memory">
+                        <i class="fa-solid fa-cloud-arrow-down" :class="{'fa-bounce': syncing === 'pull'}"></i>
+                    </button>
+                    <button @click="syncPush" :disabled="syncing" class="px-3 py-2 hover:bg-indigo-800 transition disabled:opacity-50" title="Push to Global Memory">
+                        <i class="fa-solid fa-cloud-arrow-up" :class="{'fa-bounce': syncing === 'push'}"></i>
+                    </button>
+                </div>
+                
                 <button @click="currentTab = 'search'" :class="{'bg-indigo-700': currentTab === 'search'}" class="px-4 py-2 rounded-lg hover:bg-indigo-700 transition">
                     <i class="fa-solid fa-magnifying-glass mr-2"></i>Search
                 </button>
@@ -109,12 +119,17 @@
                                         <span class="font-mono bg-gray-100 px-2 rounded">{{ selectedRecord.review_id }}</span>
                                     </div>
                                 </div>
-                                <button v-if="selectedRecord.status !== 'archived'" @click="archiveRecord" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded text-sm font-medium transition">
-                                    <i class="fa-solid fa-box-archive mr-1"></i> Archive
-                                </button>
-                                <span v-else class="px-3 py-1.5 bg-gray-100 text-gray-500 rounded text-sm font-medium">
-                                    <i class="fa-solid fa-box-archive mr-1"></i> Archived
-                                </span>
+                                <div class="flex">
+                                    <button v-if="selectedRecord" @click="shareRecord" class="px-3 py-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded text-sm font-medium transition mr-2">
+                                        <i class="fa-solid fa-share-nodes mr-1"></i> Share Global
+                                    </button>
+                                    <button v-if="selectedRecord.status !== 'archived'" @click="archiveRecord" class="px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded text-sm font-medium transition">
+                                        <i class="fa-solid fa-box-archive mr-1"></i> Archive
+                                    </button>
+                                    <span v-else class="px-3 py-1.5 bg-gray-100 text-gray-500 rounded text-sm font-medium">
+                                        <i class="fa-solid fa-box-archive mr-1"></i> Archived
+                                    </span>
+                                </div>
                             </div>
 
                             <!-- Content Sections -->

@@ -11,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from config import REVIEWS_DIR, CACHE_REVIEWS_DIR
 from build_memory_cache import build_index
 from manage_memory import load_record, save_record
+from sync_global import pull_global_memory, push_global_memory, share_local_record
 
 PORT = 8000
 WEB_DIR = Path(__file__).resolve().parents[1] / "web"
@@ -125,6 +126,44 @@ class DashboardHandler(http.server.SimpleHTTPRequestHandler):
                 
                 self._set_headers()
                 self.wfile.write(json.dumps({"success": True}).encode())
+            except Exception as e:
+                self._set_headers(500)
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+            
+        # API: /api/sync/pull
+        elif parsed_path.path == '/api/sync/pull':
+            try:
+                msg = pull_global_memory()
+                self._set_headers()
+                self.wfile.write(json.dumps({"success": True, "message": msg}).encode())
+            except Exception as e:
+                self._set_headers(500)
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+            
+        # API: /api/sync/push
+        elif parsed_path.path == '/api/sync/push':
+            try:
+                msg = push_global_memory()
+                self._set_headers()
+                self.wfile.write(json.dumps({"success": True, "message": msg}).encode())
+            except Exception as e:
+                self._set_headers(500)
+                self.wfile.write(json.dumps({"error": str(e)}).encode())
+            return
+            
+        # API: /api/sync/share
+        elif parsed_path.path == '/api/sync/share':
+            review_id = body.get("review_id")
+            if not review_id:
+                self._set_headers(400)
+                self.wfile.write(json.dumps({"error": "Missing review_id"}).encode())
+                return
+            try:
+                msg = share_local_record(review_id)
+                self._set_headers()
+                self.wfile.write(json.dumps({"success": True, "message": msg}).encode())
             except Exception as e:
                 self._set_headers(500)
                 self.wfile.write(json.dumps({"error": str(e)}).encode())
