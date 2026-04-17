@@ -180,6 +180,10 @@ python scripts/manage_memory.py archive REV-20260417-001 REV-20260417-002
 - `scripts/migrate_memory.py`: 用于处理 Schema 升级时的旧数据自动化迁移。
 - `scripts/build_memory_cache.py`: 提取活跃复盘记录的摘要并生成检索缓存索引 (`.cache/reviews/search_index.json`)，用于极大降低长周期检索时的 Token 消耗。
 - `scripts/search_memory.py`: 交互式的 CLI 工具，可本地查询缓存索引。支持关键词匹配、显示归档记录 (`--all`)、输出完整 JSON (`--verbose`) 等。
+- `scripts/github_integration.py`: 自动化 GitHub Actions 脚本，获取 PR 数据并自动生成复盘记录，最后将结果作为评论写回 PR。
+- `scripts/context_injector.py`: 自动查找当前 Git 工作区的活跃修改文件，提取关键词并检索相关记忆，便于大模型获取上下文。
+- `scripts/memory_lifecycle.py`: 自动扫描并归档超过指定天数（如 365 天）的陈旧复盘记录，保持记忆库的纯净。
+- `scripts/knowledge_graph.py`: 将活跃复盘记录的 Task Type 与 Action Items 转换为 Mermaid 知识图谱，便于可视化分析。
 
 ### 全局记忆同步 (Global Memory Sync)
 

@@ -1,0 +1,9 @@
+- [x] 创建并配置 `.github/workflows/auto_review.yml`
+- [x] `scripts/github_integration.py` 可以获取 PR 差异并调用模型生成 JSON，回写评论
+- [x] `scripts/context_injector.py` 能够读取工作区 Diff，并提取相关历史结论
+- [x] 在 `src/mcp_server.py` 中新增 `inject_context` 工具
+- [x] `scripts/memory_lifecycle.py` 能够根据阈值自动归档 `archived` 旧记录
+- [x] `scripts/knowledge_graph.py` 能够解析所有活跃的 JSON 并生成关系图（如 Mermaid）
+- [x] 在 `src/mcp_server.py` 中新增 `archive_stale_memories` 和 `generate_knowledge_graph` 工具
+- [x] 为上述四个新脚本编写了测试用例，`pytest` 全部通过
+- [x] `README.md` 与 `review_memory_skill_spec.md` 中补充了关于新增自动化流程的使用说明

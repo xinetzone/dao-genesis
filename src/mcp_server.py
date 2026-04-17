@@ -1,14 +1,18 @@
-from config import REVIEWS_DIR
-from sync_global import pull_global_memory, push_global_memory, share_local_record
-from manage_memory import load_record, save_record
-from search_memory import search_index
 from mcp.server.fastmcp import FastMCP
 import sys
+import json
 from pathlib import Path
 
 # Add scripts directory to path to import existing modules
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
+from config import REVIEWS_DIR
+from sync_global import pull_global_memory, push_global_memory, share_local_record
+from manage_memory import load_record, save_record
+from search_memory import search_index
+from context_injector import inject_context
+from memory_lifecycle import archive_stale_memories
+from knowledge_graph import generate_knowledge_graph
 
 # Create FastMCP server
 mcp = FastMCP("dao-genesis")
@@ -201,6 +205,55 @@ def share_record_to_global(review_id: str) -> str:
         return msg
     except Exception as e:
         return f"Error sharing record to global memory: {str(e)}"
+
+
+@mcp.tool()
+def run_context_injection() -> str:
+    """
+    Run context injection by analyzing active files and returning related memories.
+
+    Returns:
+        JSON string containing matching memories.
+    """
+    try:
+        results = inject_context()
+        if not results:
+            return "[]"
+        return json.dumps(results, indent=2, ensure_ascii=False)
+    except Exception as e:
+        return f"Error running context injection: {str(e)}"
+
+
+@mcp.tool()
+def run_archive_stale_memories(days: int = 365) -> str:
+    """
+    Archive memories older than a specified number of days.
+
+    Args:
+        days: Number of days before a memory is considered stale.
+
+    Returns:
+        Status message indicating how many records were archived.
+    """
+    try:
+        count = archive_stale_memories(days)
+        return f"Successfully archived {count} stale memories."
+    except Exception as e:
+        return f"Error archiving stale memories: {str(e)}"
+
+
+@mcp.tool()
+def get_knowledge_graph() -> str:
+    """
+    Generate a Mermaid knowledge graph of tasks and action items from active memory records.
+
+    Returns:
+        Mermaid graph as a string.
+    """
+    try:
+        return generate_knowledge_graph()
+    except Exception as e:
+        return f"Error generating knowledge graph: {str(e)}"
 
 
 if __name__ == "__main__":

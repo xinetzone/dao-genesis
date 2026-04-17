@@ -3,7 +3,7 @@ title: 系统性复盘与记忆管理技能（Systematic Review & Memory Managem
 project: dao-genesis
 repo: daoAgents/dao-genesis
 doc_type: technical-spec
-version: 1.2.0
+version: 1.3.0
 status: active
 audience: team
 authors:
@@ -22,7 +22,7 @@ updated_at: 2026-04-17
 
 | 字段 | 值 |
 |---|---|
-| 文档版本 | 1.2.0 |
+| 文档版本 | 1.3.0 |
 | 状态 | active |
 | 作者 | xinetzone |
 | 受众 | 团队协作 |
@@ -260,6 +260,11 @@ flowchart LR
 3. **历史数据迁移工具 (`scripts/migrate_memory.py`)**：支持识别并处理由于 schema 演进带来的兼容性问题，目前支持将老版本（v1.0）嵌套格式的记录迁移至扁平化格式（v1.1）。支持 `--dry-run` 预览迁移结果。
 4. **检索缓存构建工具 (`scripts/build_memory_cache.py`)**：提取所有活跃复盘记录的摘要并将其汇总到 `.cache/reviews/search_index.json`。这个索引仅包含最核心的结论和少量的行动项，便于大模型快速检索和降低 Token 开销。
 5. **一致性校验工具 (`scripts/validate_reviews.py`)**：在本地或 CI 环境中全量检查所有复盘 JSON，确保必须包含 required 字段且结构合法。
+6. **自动化闭环与集成工具**：
+   - **GitHub 集成 (`scripts/github_integration.py`)**：基于 GitHub Actions 自动获取 PR Diff 并生成复盘报告回写至 PR 评论区。
+   - **上下文注入 (`scripts/context_injector.py`)**：自动识别活跃文件变更并为其提供基于关键词的上下文记忆注入。
+   - **生命周期管理 (`scripts/memory_lifecycle.py`)**：自动化清理并归档超期的过时记忆（如默认 365 天前）。
+   - **知识图谱生成 (`scripts/knowledge_graph.py`)**：基于所有活跃复盘中的 Task Type 和 Action Items 自动构建 Mermaid 格式知识图谱。
 
 这些工具保证了人工直接干预或脚本自动化写入时，数据契约不会被破坏。
 
@@ -377,3 +382,4 @@ flowchart LR
 | 1.0.0 | 2026-04-17 | 初始版本：定义系统性复盘与记忆管理的核心能力（Prompt/Schema）、`.storage/` 与 `.cache/` 架构、多平台追踪（GitHub/GitLab/AtomGit）、以及向后兼容策略。 |
 | 1.1.0 | 2026-04-17 | 引入 Contract 强约束，规范工具白名单（Glob/Grep/Read/Write）与多文件操作流程；扁平化数据结构以降低 Token 消耗并对齐最新 schema。 |
 | 1.2.0 | 2026-04-17 | 补充本地离线管理与自动化脚本说明（新增 manage_memory / migrate_memory / build_memory_cache 脚本）；并重构所有脚本以支持 MEMORY_ROOT 等环境变量配置。 |
+| 1.3.0 | 2026-04-17 | 引入并记录了自动化集成工具：GitHub Actions 集成 (`github_integration.py`)、上下文注入 (`context_injector.py`)、生命周期管理 (`memory_lifecycle.py`) 及知识图谱生成 (`knowledge_graph.py`)。 |
