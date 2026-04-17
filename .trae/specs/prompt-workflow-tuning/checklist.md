@@ -1,0 +1,4 @@
+- [x] `src/system-prompt.md` 已包含原生工具 (Read/Write/Glob/Grep) 的明确使用规范。
+- [x] `src/system-prompt.md` 已包含强制精简输出以优化 Token 的规则。
+- [x] `src/memory-schema.json` 的字段与 Prompt 中的提取目标保持一致。
+- [x] `.storage/reviews/` 目录下已存在合规的 Mock 记忆 JSON 文件。

@@ -6,10 +6,13 @@
   "additionalProperties": false,
   "required": [
     "review_id",
-    "system_meta",
-    "metadata",
-    "key_findings",
-    "lessons_learned",
+    "timestamp",
+    "participants",
+    "task_type",
+    "decisions",
+    "success_factors",
+    "failure_reasons",
+    "best_practices",
     "action_items",
     "status"
   ],
@@ -18,83 +21,61 @@
       "type": "string",
       "pattern": "^REV-[0-9]{8}-[0-9]{3}$"
     },
-    "system_meta": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["schema_version", "source_platform", "project_id"],
-      "properties": {
-        "schema_version": { "type": "string" },
-        "source_platform": { "type": "string" },
-        "project_id": { "type": "string" }
-      }
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
     },
-    "metadata": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["timestamp", "participants", "task_type", "tags"],
-      "properties": {
-        "timestamp": { "type": "string", "format": "date-time" },
-        "participants": {
-          "type": "array",
-          "items": { "type": "string" },
-          "minItems": 1
-        },
-        "task_type": { "type": "string" },
-        "tags": {
-          "type": "array",
-          "items": { "type": "string" },
-          "default": []
-        },
-        "trace_links": {
-          "type": "array",
-          "items": { "type": "string", "format": "uri" },
-          "default": []
-        }
-      }
+    "participants": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1
     },
-    "key_findings": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["decisions", "obstacles"],
-      "properties": {
-        "decisions": {
-          "type": "array",
-          "items": { "type": "string" },
-          "default": []
-        },
-        "obstacles": {
-          "type": "array",
-          "items": { "type": "string" },
-          "default": []
-        }
-      }
+    "task_type": {
+      "type": "string"
     },
-    "lessons_learned": {
-      "type": "object",
-      "additionalProperties": false,
-      "required": ["success_factors", "failure_reasons"],
-      "properties": {
-        "success_factors": {
-          "type": "array",
-          "items": { "type": "string" },
-          "default": []
-        },
-        "failure_reasons": {
-          "type": "array",
-          "items": { "type": "string" },
-          "default": []
-        }
-      }
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "success_factors": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "failure_reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
+    },
+    "best_practices": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": []
     },
     "action_items": {
       "type": "array",
-      "items": { "type": "string" },
+      "items": {
+        "type": "string"
+      },
       "default": []
     },
     "status": {
       "type": "string",
-      "enum": ["active", "archived"]
+      "enum": [
+        "active",
+        "archived"
+      ]
     }
   }
 }
-
