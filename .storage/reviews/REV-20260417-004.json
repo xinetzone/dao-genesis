@@ -1,31 +1,21 @@
 {
   "review_id": "REV-20260417-004",
-  "system_meta": {
-    "schema_version": "1.0",
-    "source_platform": "linux",
-    "project_id": "dao-genesis"
-  },
-  "metadata": {
-    "timestamp": "2026-04-17T00:00:00Z",
-    "participants": ["User", "AI Agent"],
-    "task_type": "Feature Implementation",
-    "tags": ["Web Dashboard", "Global Sync", "API", "UI"],
-    "trace_links": []
-  },
-  "key_findings": {
-    "decisions": [
-      "将全局记忆同步功能（pull/push/share）集成到 Web Dashboard 以提供可视化操作"
-    ],
-    "success_factors": [
-      "复用了现有的 `sync_global.py` 逻辑，通过重构提取了可供 API 调用的独立函数"
-    ],
-    "failure_reasons": []
-  },
-  "lessons_learned": {
-    "best_practices": [
-      "前后端分离架构中，新增功能应从后端 API 到前端 UI 逐步实现，保持逻辑清晰"
-    ],
-    "action_items": []
-  },
+  "timestamp": "2026-04-17T00:00:00Z",
+  "participants": [
+    "User",
+    "AI Agent"
+  ],
+  "task_type": "Feature Implementation",
+  "decisions": [
+    "将全局记忆同步功能（pull/push/share）集成到 Web Dashboard 以提供可视化操作"
+  ],
+  "success_factors": [
+    "复用了现有的 `sync_global.py` 逻辑，通过重构提取了可供 API 调用的独立函数"
+  ],
+  "failure_reasons": [],
+  "best_practices": [
+    "前后端分离架构中，新增功能应从后端 API 到前端 UI 逐步实现，保持逻辑清晰"
+  ],
+  "action_items": [],
   "status": "active"
 }
