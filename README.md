@@ -65,7 +65,14 @@ mkdir -p .storage/reviews/ .cache/reviews/
 
 **运行脚本：**
 ```bash
+# 转换单个文件
 python scripts/inject_memory.py <path_to_markdown>
+
+# 批量转换一个目录下的所有 .md 文件
+python scripts/inject_memory.py <path_to_directory>
+
+# 递归批量转换目录及其子目录下的所有 .md 文件
+python scripts/inject_memory.py <path_to_directory> -r
 ```
 
 **Markdown 格式要求：**

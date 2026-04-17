@@ -6,15 +6,18 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-def generate_review_id(reviews_dir: Path, date_str: str) -> str:
-    """生成下一个 review_id (REV-YYYYMMDD-NNN)"""
-    prefix = f"REV-{date_str}-"
-    max_num = 0
-    for f in reviews_dir.glob(f"{prefix}*.json"):
-        match = re.match(rf"^{prefix}(\d{{3}})\.json$", f.name)
-        if match:
-            max_num = max(max_num, int(match.group(1)))
-    return f"{prefix}{max_num + 1:03d}"
+class IDGenerator:
+    def __init__(self, reviews_dir: Path, date_str: str):
+        self.prefix = f"REV-{date_str}-"
+        self.max_num = 0
+        for f in reviews_dir.glob(f"{self.prefix}*.json"):
+            match = re.match(rf"^{self.prefix}(\d{{3}})\.json$", f.name)
+            if match:
+                self.max_num = max(self.max_num, int(match.group(1)))
+
+    def next_id(self) -> str:
+        self.max_num += 1
+        return f"{self.prefix}{self.max_num:03d}"
 
 
 def normalize_bullet(line: str) -> str | None:
@@ -147,37 +150,75 @@ def fill_defaults_and_metadata(data: dict, review_id: str) -> dict:
     return final_data
 
 
+def process_single_file(input_path: Path, reviews_dir: Path, id_generator: IDGenerator, verbose: bool = True) -> bool:
+    """处理单个文件，成功返回 True，失败返回 False"""
+    try:
+        # 1. 读取并解析 MD
+        md_content = input_path.read_text(encoding="utf-8")
+        extracted_data = parse_markdown(md_content)
+
+        # 2. 生成 ID
+        review_id = id_generator.next_id()
+
+        # 3. 填充并对齐 Schema
+        final_record = fill_defaults_and_metadata(extracted_data, review_id)
+
+        # 4. 写入文件
+        out_path = reviews_dir / f"{review_id}.json"
+        out_path.write_text(json.dumps(final_record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+        if verbose:
+            print(f"[{input_path.name}] Injected -> {out_path.name}")
+        return True
+    except Exception as e:
+        print(f"[{input_path.name}] Failed: {e}", file=sys.stderr)
+        return False
+
+
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Convert a Markdown review file to a valid memory JSON record.")
-    parser.add_argument("input_md", type=Path, help="Path to the input Markdown file")
+    parser = argparse.ArgumentParser(description="Convert Markdown review file(s) to memory JSON records.")
+    parser.add_argument("input_path", type=Path, help="Path to the input Markdown file or directory")
+    parser.add_argument("-r", "--recursive", action="store_true", help="Search recursively if input_path is a directory")
     args = parser.parse_args()
 
-    input_path: Path = args.input_md
-    if not input_path.exists() or not input_path.is_file():
-        print(f"Error: File not found -> {input_path}", file=sys.stderr)
+    input_path: Path = args.input_path
+    if not input_path.exists():
+        print(f"Error: Path not found -> {input_path}", file=sys.stderr)
         return 1
 
     repo_root = Path(__file__).resolve().parents[1]
     reviews_dir = repo_root / ".storage" / "reviews"
     reviews_dir.mkdir(parents=True, exist_ok=True)
 
-    # 1. 读取并解析 MD
-    md_content = input_path.read_text(encoding="utf-8")
-    extracted_data = parse_markdown(md_content)
-
-    # 2. 生成 ID
     date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
-    review_id = generate_review_id(reviews_dir, date_str)
+    id_generator = IDGenerator(reviews_dir, date_str)
 
-    # 3. 填充并对齐 Schema
-    final_record = fill_defaults_and_metadata(extracted_data, review_id)
+    files_to_process = []
+    if input_path.is_file():
+        files_to_process.append(input_path)
+    elif input_path.is_dir():
+        pattern = "**/*.md" if args.recursive else "*.md"
+        files_to_process.extend(input_path.glob(pattern))
+    else:
+        print(f"Error: Invalid path type -> {input_path}", file=sys.stderr)
+        return 1
 
-    # 4. 写入文件
-    out_path = reviews_dir / f"{review_id}.json"
-    out_path.write_text(json.dumps(final_record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    if not files_to_process:
+        print("No Markdown files found to process.")
+        return 0
 
-    print(f"Successfully injected memory record -> {out_path.as_posix()}")
-    return 0
+    print(f"Found {len(files_to_process)} file(s) to process.")
+    success_count = 0
+    fail_count = 0
+
+    for f in files_to_process:
+        if process_single_file(f, reviews_dir, id_generator, verbose=True):
+            success_count += 1
+        else:
+            fail_count += 1
+
+    print(f"Batch import completed: {success_count} succeeded, {fail_count} failed.")
+    return 1 if fail_count > 0 else 0
 
 
 if __name__ == "__main__":
