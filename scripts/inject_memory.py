@@ -150,7 +150,7 @@ def fill_defaults_and_metadata(data: dict, review_id: str) -> dict:
     return final_data
 
 
-def process_single_file(input_path: Path, reviews_dir: Path, id_generator: IDGenerator, verbose: bool = True) -> bool:
+def process_single_file(input_path: Path, reviews_dir: Path, id_generator: IDGenerator, dry_run: bool = False, verbose: bool = True) -> bool:
     """处理单个文件，成功返回 True，失败返回 False"""
     try:
         # 1. 读取并解析 MD
@@ -163,12 +163,17 @@ def process_single_file(input_path: Path, reviews_dir: Path, id_generator: IDGen
         # 3. 填充并对齐 Schema
         final_record = fill_defaults_and_metadata(extracted_data, review_id)
 
-        # 4. 写入文件
+        # 4. 如果不是 dry-run，则写入文件
         out_path = reviews_dir / f"{review_id}.json"
-        out_path.write_text(json.dumps(final_record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        if not dry_run:
+            out_path.write_text(json.dumps(final_record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            if verbose:
+                print(f"[{input_path.name}] Injected -> {out_path.name}")
+        else:
+            if verbose:
+                print(f"[DRY-RUN] Would inject {input_path.name} -> {out_path.name}:")
+                print(json.dumps(final_record, indent=2, ensure_ascii=False))
 
-        if verbose:
-            print(f"[{input_path.name}] Injected -> {out_path.name}")
         return True
     except Exception as e:
         print(f"[{input_path.name}] Failed: {e}", file=sys.stderr)
@@ -179,6 +184,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Convert Markdown review file(s) to memory JSON records.")
     parser.add_argument("input_path", type=Path, help="Path to the input Markdown file or directory")
     parser.add_argument("-r", "--recursive", action="store_true", help="Search recursively if input_path is a directory")
+    parser.add_argument("--dry-run", action="store_true", help="Parse and print the JSON output without writing to disk")
     args = parser.parse_args()
 
     input_path: Path = args.input_path
@@ -212,12 +218,13 @@ def main() -> int:
     fail_count = 0
 
     for f in files_to_process:
-        if process_single_file(f, reviews_dir, id_generator, verbose=True):
+        if process_single_file(f, reviews_dir, id_generator, dry_run=args.dry_run, verbose=True):
             success_count += 1
         else:
             fail_count += 1
 
-    print(f"Batch import completed: {success_count} succeeded, {fail_count} failed.")
+    mode = "Dry-run" if args.dry_run else "Batch import"
+    print(f"{mode} completed: {success_count} succeeded, {fail_count} failed.")
     return 1 if fail_count > 0 else 0
 
 

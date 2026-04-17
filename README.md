@@ -73,6 +73,9 @@ python scripts/inject_memory.py <path_to_directory>
 
 # 递归批量转换目录及其子目录下的所有 .md 文件
 python scripts/inject_memory.py <path_to_directory> -r
+
+# 干跑预览（Dry-Run）：只打印解析生成的 JSON 结果，不写入磁盘
+python scripts/inject_memory.py <path_to_markdown_or_directory> --dry-run
 ```
 
 **Markdown 格式要求：**
