@@ -22,3 +22,6 @@ jobs:
       - name: Validate JSON files
         run: |
           python -m json.tool src/memory-schema.json > /dev/null
+      - name: Validate review records
+        run: |
+          python scripts/validate_reviews.py
