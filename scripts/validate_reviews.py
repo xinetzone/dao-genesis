@@ -6,6 +6,8 @@ from pathlib import Path
 
 
 def _parse_datetime(value: str) -> bool:
+    if not value.endswith("Z"):
+        return False
     try:
         datetime.fromisoformat(value.replace("Z", "+00:00"))
         return True
@@ -41,6 +43,8 @@ def validate_record(path: Path, schema: dict) -> list[str]:
     if "review_id" in data:
         if not isinstance(data["review_id"], str) or not re.match(r"^REV-[0-9]{8}-[0-9]{3}$", data["review_id"]):
             errors.append("review_id must match ^REV-[0-9]{8}-[0-9]{3}$")
+        elif data["review_id"] != path.stem:
+            errors.append(f"review_id ('{data['review_id']}') must exactly match filename without extension ('{path.stem}')")
 
     if "timestamp" in data:
         if not isinstance(data["timestamp"], str) or not _parse_datetime(data["timestamp"]):
@@ -81,13 +85,18 @@ def main() -> int:
         print("no .storage/reviews directory", file=sys.stderr)
         return 2
 
-    files = sorted(reviews_dir.glob("REV-*.json"))
+    files = sorted(reviews_dir.glob("*.json"))
     if not files:
         print("no review files found", file=sys.stderr)
         return 2
 
     failed = 0
     for f in files:
+        if not re.match(r"^REV-[0-9]{8}-[0-9]{3}\.json$", f.name):
+            print(f"{f.as_posix()}: invalid file name pattern (must match ^REV-YYYYMMDD-NNN.json$)", file=sys.stderr)
+            failed += 1
+            continue
+
         errors = validate_record(f, schema)
         if errors:
             failed += 1
