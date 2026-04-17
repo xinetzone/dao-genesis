@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "dao-genesis": {
+      "command": "uvx",
+      "args": ["--from", "mcp", "fastmcp", "run", "src/mcp_server.py"]
+    }
+  }
+}
