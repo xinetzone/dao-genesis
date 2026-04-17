@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://daoagents.github.io/dao-genesis/schema/memory-record.json",
+  "title": "dao-genesis Review Memory Record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "review_id",
+    "system_meta",
+    "metadata",
+    "key_findings",
+    "lessons_learned",
+    "action_items",
+    "status"
+  ],
+  "properties": {
+    "review_id": {
+      "type": "string",
+      "pattern": "^REV-[0-9]{8}-[0-9]{3}$"
+    },
+    "system_meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schema_version", "source_platform", "project_id"],
+      "properties": {
+        "schema_version": { "type": "string" },
+        "source_platform": { "type": "string" },
+        "project_id": { "type": "string" }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["timestamp", "participants", "task_type", "tags"],
+      "properties": {
+        "timestamp": { "type": "string", "format": "date-time" },
+        "participants": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "task_type": { "type": "string" },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "trace_links": {
+          "type": "array",
+          "items": { "type": "string", "format": "uri" },
+          "default": []
+        }
+      }
+    },
+    "key_findings": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["decisions", "obstacles"],
+      "properties": {
+        "decisions": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "obstacles": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        }
+      }
+    },
+    "lessons_learned": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["success_factors", "failure_reasons"],
+      "properties": {
+        "success_factors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        },
+        "failure_reasons": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": []
+        }
+      }
+    },
+    "action_items": {
+      "type": "array",
+      "items": { "type": "string" },
+      "default": []
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "archived"]
+    }
+  }
+}
+
