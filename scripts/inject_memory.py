@@ -5,6 +5,11 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# Add scripts directory to sys.path to import config (when running locally)
+import sys
+import os
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from config import REVIEWS_DIR, ensure_directories
 
 class IDGenerator:
     def __init__(self, reviews_dir: Path, date_str: str):
@@ -192,9 +197,8 @@ def main() -> int:
         print(f"Error: Path not found -> {input_path}", file=sys.stderr)
         return 1
 
-    repo_root = Path(__file__).resolve().parents[1]
-    reviews_dir = repo_root / ".storage" / "reviews"
-    reviews_dir.mkdir(parents=True, exist_ok=True)
+    ensure_directories()
+    reviews_dir = REVIEWS_DIR
 
     date_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     id_generator = IDGenerator(reviews_dir, date_str)
