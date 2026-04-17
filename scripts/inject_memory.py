@@ -17,6 +17,28 @@ def generate_review_id(reviews_dir: Path, date_str: str) -> str:
     return f"{prefix}{max_num + 1:03d}"
 
 
+def normalize_bullet(line: str) -> str | None:
+    """
+    尝试归一化行：去除列表前缀（-、*、1.、(1)、[xxx]等），并清理多余空白。
+    如果不是一个列表项格式，则返回 None。
+    """
+    # 匹配中括号/粗括号整行：[xxx] 或 【xxx】
+    match_brackets = re.match(r"^[\(（\[【](.+?)[\)）\]】]$", line)
+    if match_brackets:
+        return match_brackets.group(1).strip()
+    
+    # 匹配数字前缀：1. 1) (1) ①
+    match_num = re.match(r"^(?:\d+[\.\)]|\(\d+\)|（\d+）|①|②|③|④|⑤|⑥|⑦|⑧|⑨|⑩)\s*(.+)$", line)
+    if match_num:
+        return match_num.group(1).strip()
+    
+    # 匹配无序前缀：- * • ·
+    match_bullet = re.match(r"^[-*•·]\s*(.+)$", line)
+    if match_bullet:
+        return match_bullet.group(1).strip()
+    
+    return None
+
 def parse_markdown(content: str) -> dict:
     """基于 Markdown Header 提取复盘字段"""
     data = {}
@@ -73,10 +95,8 @@ def parse_markdown(content: str) -> dict:
 
         # 提取内容
         if current_key in array_keys:
-            # 匹配列表项 (支持 - 或 *)
-            list_match = re.match(r"^[-*]\s+(.+)$", line_stripped)
-            if list_match:
-                val = list_match.group(1).strip()
+            val = normalize_bullet(line_stripped)
+            if val:
                 if current_key not in data:
                     data[current_key] = []
                 data[current_key].append(val)
