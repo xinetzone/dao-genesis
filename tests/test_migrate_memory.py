@@ -1,11 +1,10 @@
-import json
+from migrate_memory import migrate_v1_0_to_v1_1, is_v1_0
 import sys
 from pathlib import Path
 
 scripts_dir = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.append(str(scripts_dir))
 
-from migrate_memory import migrate_v1_0_to_v1_1, is_v1_0
 
 def test_is_v1_0():
     old_data = {
@@ -18,13 +17,14 @@ def test_is_v1_0():
         "status": "active"
     }
     assert is_v1_0(old_data) is True
-    
+
     new_data = {
         "review_id": "REV-123",
         "timestamp": "2026-04-17T10:00:00Z",
         "decisions": ["D1"]
     }
     assert is_v1_0(new_data) is False
+
 
 def test_migrate_v1_0_to_v1_1():
     old_data = {
@@ -45,9 +45,9 @@ def test_migrate_v1_0_to_v1_1():
         "action_items": ["A1"],
         "status": "archived"
     }
-    
+
     new_data = migrate_v1_0_to_v1_1(old_data)
-    
+
     assert new_data["review_id"] == "REV-123"
     assert new_data["timestamp"] == "2026-04-17T10:00:00Z"
     assert new_data["participants"] == ["User", "AI Agent"]

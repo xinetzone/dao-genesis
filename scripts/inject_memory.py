@@ -1,15 +1,14 @@
+import sys
+from config import REVIEWS_DIR, ensure_directories
 import argparse
 import json
 import re
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
 # Add scripts directory to sys.path to import config (when running locally)
-import sys
-import os
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from config import REVIEWS_DIR, ensure_directories
+
 
 class IDGenerator:
     def __init__(self, reviews_dir: Path, date_str: str):
@@ -34,18 +33,20 @@ def normalize_bullet(line: str) -> str | None:
     match_brackets = re.match(r"^[\(（\[【](.+?)[\)）\]】]$", line)
     if match_brackets:
         return match_brackets.group(1).strip()
-    
+
     # 匹配数字前缀：1. 1) (1) ①
-    match_num = re.match(r"^(?:\d+[\.\)]|\(\d+\)|（\d+）|①|②|③|④|⑤|⑥|⑦|⑧|⑨|⑩)\s*(.+)$", line)
+    match_num = re.match(
+        r"^(?:\d+[\.\)]|\(\d+\)|（\d+）|①|②|③|④|⑤|⑥|⑦|⑧|⑨|⑩)\s*(.+)$", line)
     if match_num:
         return match_num.group(1).strip()
-    
+
     # 匹配无序前缀：- * • ·
     match_bullet = re.match(r"^[-*•·]\s*(.+)$", line)
     if match_bullet:
         return match_bullet.group(1).strip()
-    
+
     return None
+
 
 def parse_markdown(content: str) -> dict:
     """基于 Markdown Header 提取复盘字段"""
@@ -90,7 +91,8 @@ def parse_markdown(content: str) -> dict:
         # 匹配 Header (例如 ## Decisions 或 ### 关键决策)
         header_match = re.match(r"^#{2,4}\s+(.+)$", line_stripped)
         if header_match:
-            header_text = header_match.group(1).strip().lower().replace("_", " ")
+            header_text = header_match.group(
+                1).strip().lower().replace("_", " ")
             current_key = None
             for kw, key in header_mapping.items():
                 if kw in header_text:
@@ -125,7 +127,7 @@ def parse_markdown(content: str) -> dict:
 def fill_defaults_and_metadata(data: dict, review_id: str) -> dict:
     """补齐缺失必填字段和元数据，确保满足 schema"""
     now_utc = datetime.now(timezone.utc)
-    
+
     final_data = {
         "review_id": review_id,
         "timestamp": now_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -140,22 +142,23 @@ def fill_defaults_and_metadata(data: dict, review_id: str) -> dict:
         "best_practices",
         "action_items",
     ]
-    
+
     # Task Type 兜底
     final_data["participants"] = data.get("participants", ["Unknown"])
     final_data["task_type"] = data.get("task_type", "General Review")
-    
+
     for k in array_keys:
         if k != "participants":
             final_data[k] = data.get(k, [])
-            
+
     final_data["status"] = data.get("status", "active")
-    
+
     # 过滤不在 Schema 里的未知字段
     return final_data
 
 
-def process_single_file(input_path: Path, reviews_dir: Path, id_generator: IDGenerator, dry_run: bool = False, verbose: bool = True) -> bool:
+def process_single_file(input_path: Path, reviews_dir: Path, id_generator: IDGenerator,
+                        dry_run: bool = False, verbose: bool = True) -> bool:
     """处理单个文件，成功返回 True，失败返回 False"""
     try:
         # 1. 读取并解析 MD
@@ -171,12 +174,19 @@ def process_single_file(input_path: Path, reviews_dir: Path, id_generator: IDGen
         # 4. 如果不是 dry-run，则写入文件
         out_path = reviews_dir / f"{review_id}.json"
         if not dry_run:
-            out_path.write_text(json.dumps(final_record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+            out_path.write_text(
+                json.dumps(
+                    final_record,
+                    indent=2,
+                    ensure_ascii=False) +
+                "\n",
+                encoding="utf-8")
             if verbose:
                 print(f"[{input_path.name}] Injected -> {out_path.name}")
         else:
             if verbose:
-                print(f"[DRY-RUN] Would inject {input_path.name} -> {out_path.name}:")
+                print(
+                    f"[DRY-RUN] Would inject {input_path.name} -> {out_path.name}:")
                 print(json.dumps(final_record, indent=2, ensure_ascii=False))
 
         return True
@@ -186,10 +196,21 @@ def process_single_file(input_path: Path, reviews_dir: Path, id_generator: IDGen
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Convert Markdown review file(s) to memory JSON records.")
-    parser.add_argument("input_path", type=Path, help="Path to the input Markdown file or directory")
-    parser.add_argument("-r", "--recursive", action="store_true", help="Search recursively if input_path is a directory")
-    parser.add_argument("--dry-run", action="store_true", help="Parse and print the JSON output without writing to disk")
+    parser = argparse.ArgumentParser(
+        description="Convert Markdown review file(s) to memory JSON records.")
+    parser.add_argument(
+        "input_path",
+        type=Path,
+        help="Path to the input Markdown file or directory")
+    parser.add_argument(
+        "-r",
+        "--recursive",
+        action="store_true",
+        help="Search recursively if input_path is a directory")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Parse and print the JSON output without writing to disk")
     args = parser.parse_args()
 
     input_path: Path = args.input_path
@@ -222,7 +243,8 @@ def main() -> int:
     fail_count = 0
 
     for f in files_to_process:
-        if process_single_file(f, reviews_dir, id_generator, dry_run=args.dry_run, verbose=True):
+        if process_single_file(f, reviews_dir, id_generator,
+                               dry_run=args.dry_run, verbose=True):
             success_count += 1
         else:
             fail_count += 1

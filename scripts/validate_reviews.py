@@ -1,12 +1,12 @@
+from config import REVIEWS_DIR, ensure_directories
 import json
 import re
 import sys
-import os
 from datetime import datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from config import REVIEWS_DIR, ensure_directories
+
 
 def _parse_datetime(value: str) -> bool:
     if not value.endswith("Z"):
@@ -44,31 +44,50 @@ def validate_record(path: Path, schema: dict) -> list[str]:
         errors.append(f"unknown keys: {', '.join(extra)}")
 
     if "review_id" in data:
-        if not isinstance(data["review_id"], str) or not re.match(r"^REV-[0-9]{8}-[0-9]{3}$", data["review_id"]):
+        if not isinstance(data["review_id"], str) or not re.match(
+                r"^REV-[0-9]{8}-[0-9]{3}$", data["review_id"]):
             errors.append("review_id must match ^REV-[0-9]{8}-[0-9]{3}$")
         elif data["review_id"] != path.stem:
-            errors.append(f"review_id ('{data['review_id']}') must exactly match filename without extension ('{path.stem}')")
+            errors.append(
+                f"review_id ('{
+                    data['review_id']}') must exactly match filename without extension ('{
+                    path.stem}')")
 
     if "timestamp" in data:
-        if not isinstance(data["timestamp"], str) or not _parse_datetime(data["timestamp"]):
+        if not isinstance(data["timestamp"], str) or not _parse_datetime(
+                data["timestamp"]):
             errors.append("timestamp must be ISO 8601 date-time")
 
     if "participants" in data:
-        if not _is_string_list(data["participants"]) or len(data["participants"]) < 1:
+        if not _is_string_list(data["participants"]) or len(
+                data["participants"]) < 1:
             errors.append("participants must be a non-empty array of strings")
 
     if "task_type" in data:
-        if not isinstance(data["task_type"], str) or not data["task_type"].strip():
+        if not isinstance(data["task_type"],
+                          str) or not data["task_type"].strip():
             errors.append("task_type must be a non-empty string")
 
-    for key in ["decisions", "success_factors", "failure_reasons", "best_practices", "action_items"]:
+    for key in ["decisions", "success_factors",
+                "failure_reasons", "best_practices", "action_items"]:
         if key in data and not _is_string_list(data[key]):
             errors.append(f"{key} must be an array of strings")
 
     if "status" in data:
-        allowed = set(schema.get("properties", {}).get("status", {}).get("enum", []))
-        if not isinstance(data["status"], str) or (allowed and data["status"] not in allowed):
-            errors.append(f"status must be one of: {', '.join(sorted(allowed))}")
+        allowed = set(
+            schema.get(
+                "properties",
+                {}).get(
+                "status",
+                {}).get(
+                "enum",
+                []))
+        if not isinstance(data["status"], str) or (
+                allowed and data["status"] not in allowed):
+            errors.append(
+                f"status must be one of: {
+                    ', '.join(
+                        sorted(allowed))}")
 
     return errors
 
@@ -76,7 +95,7 @@ def validate_record(path: Path, schema: dict) -> list[str]:
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[1]
     schema_path = repo_root / "src" / "memory-schema.json"
-    
+
     ensure_directories()
     reviews_dir = REVIEWS_DIR
 
@@ -98,7 +117,10 @@ def main() -> int:
     failed = 0
     for f in files:
         if not re.match(r"^REV-[0-9]{8}-[0-9]{3}\.json$", f.name):
-            print(f"{f.as_posix()}: invalid file name pattern (must match ^REV-YYYYMMDD-NNN.json$)", file=sys.stderr)
+            print(
+                f"{
+                    f.as_posix()}: invalid file name pattern (must match ^REV-YYYYMMDD-NNN.json$)",
+                file=sys.stderr)
             failed += 1
             continue
 

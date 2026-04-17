@@ -33,6 +33,7 @@ REVIEWS_DIR = MEMORY_ROOT / "reviews"
 CACHE_REVIEWS_DIR = MEMORY_CACHE_ROOT / "reviews"
 GLOBAL_REVIEWS_DIR = MEMORY_GLOBAL_ROOT / "reviews"
 
+
 def ensure_directories():
     """Ensure necessary directories exist."""
     REVIEWS_DIR.mkdir(parents=True, exist_ok=True)
