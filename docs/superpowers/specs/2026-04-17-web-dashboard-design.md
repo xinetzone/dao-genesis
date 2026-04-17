@@ -48,6 +48,17 @@
   - Body: `{ "field": "action_items", "value": "新内容", "append": true }`
   - 调用 `manage_memory` 更新逻辑，返回 `{ success: true }`。
 
+- `POST /api/sync/pull`
+  - 调用 `sync_global` 的 pull 逻辑，从远端拉取最新全局记录。
+  - 返回 `{ success: true, message: "..." }`
+- `POST /api/sync/push`
+  - 调用 `sync_global` 的 push 逻辑，将本地全局记录推送到远端 Git 仓库。
+  - 返回 `{ success: true, message: "..." }`
+- `POST /api/sync/share`
+  - Body: `{ "review_id": "REV-xxx" }`
+  - 调用 `sync_global` 的 share 逻辑，将当前项目的指定记录复制到全局目录。
+  - 返回 `{ success: true, message: "..." }`
+
 ## 5. 实施步骤
 1. 编写 `scripts/web_server.py`，实现基础 HTTP 路由与跨域（CORS）支持。
 2. 创建 `web/` 目录结构（`index.html`, `app.js`, `style.css`）。
