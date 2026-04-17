@@ -1,23 +1,34 @@
 {
   "review_id": "REV-20260417-003",
-  "timestamp": "2026-04-17T09:28:23Z",
+  "timestamp": "2026-04-17T11:32:00Z",
   "participants": [
-    "dao-genesis",
-    "user"
+    "User",
+    "dao-genesis AI"
   ],
-  "task_type": "开发 CLI 辅助工具",
+  "task_type": "Feature Development & Ecosystem Tools",
   "decisions": [
-    "不做交互式提示补全",
-    "自动填充为空数组以满足 Schema"
+    "采用纯静态前端 (HTML/JS + CDN) 结合轻量级 Python HTTP Server 构建 Web 看板，避免引入 Node.js 等重型依赖",
+    "将全局记忆同步方案设定为依赖原生 Git 仓，利用 subprocess 封装 git pull/push，实现跨项目/跨设备经验共享",
+    "对于自动化 CI，决定不将生成的缓存索引（search_index.json）自动提交回仓库，仅作为构建验证（防循环与防污染）",
+    "移除了被误提交的编译缓存（__pycache__, .pytest_cache），修正了 .gitignore 的匹配格式"
   ],
   "success_factors": [
-    "Contract 里强制要求缺失值为 `[]`。"
+    "提前进行了明确的头脑风暴与技术选型（A/B/C方案），确认了最符合该项目轻量级定位的开发栈",
+    "基于已有的 CLI 工具（manage_memory, build_memory_cache）快速包装出了 REST API，实现逻辑的高效复用",
+    "严格对齐并遵循了项目原有的 Schema 规范（v1.1 扁平化设计）"
   ],
-  "failure_reasons": [],
-  "best_practices": [],
+  "failure_reasons": [
+    "在早期的 memory_ci.yml 配置中，由于试图自动推送缓存文件而忽略了 Git 忽略规则可能导致的冲突，后续通过“验证而非推送”进行了修正",
+    "在频繁的分支切换和合入时，由于缓存文件（如 pyc）被加入版本控制，导致了 merge 冲突"
+  ],
+  "best_practices": [
+    "设计 CI 自动化时，临时或派生出来的缓存/索引数据尽量不要再反向 Commit 进源码库，通过 Artifact 或纯验证手段更安全",
+    "涉及文件系统路径或外部依赖时，统一提取到 config.py，并支持环境变量（如 MEMORY_GLOBAL_ROOT），确保跨平台和多设备的兼容性",
+    "在引入新的前端可视化（如 ECharts）或交互框架（如 Vue）时，通过 CDN 引入不仅降低门槛，而且极大提高了小工具的开发和部署效率"
+  ],
   "action_items": [
-    "在 `README.md` 里增加该工具的使用说明。",
-    "补充单元测试。"
+    "将 Web 看板的 RESTful API 端点正式记录到技术文档中，为未来扩展可能的终端（如 VSCode 插件）预留接口规范",
+    "在未来迭代中，可考虑将全局同步机制（sync_global.py）集成到 Web 看板界面中，实现一键同步按钮"
   ],
   "status": "active"
 }
