@@ -3,7 +3,7 @@ title: 系统性复盘与记忆管理技能（Systematic Review & Memory Managem
 project: dao-genesis
 repo: daoAgents/dao-genesis
 doc_type: technical-spec
-version: 1.1.0
+version: 1.2.0
 status: active
 audience: team
 authors:
@@ -22,7 +22,7 @@ updated_at: 2026-04-17
 
 | 字段 | 值 |
 |---|---|
-| 文档版本 | 1.1.0 |
+| 文档版本 | 1.2.0 |
 | 状态 | active |
 | 作者 | xinetzone |
 | 受众 | 团队协作 |
@@ -250,7 +250,20 @@ flowchart LR
 | JSON 结构不兼容/损坏 | `E_SCHEMA_MISMATCH` | `E_SCHEMA_MISMATCH | schema_version=0.9 不兼容或文件损坏` | 按 3.6 执行迁移；恢复备份后重试 |
 | 写入冲突/并发编辑 | `E_WRITE_CONFLICT` | `E_WRITE_CONFLICT | 同一记录被并发修改` | 拆分记录或先合并冲突再更新 |
 
-### 3.6 向后兼容性设计 (Backward Compatibility)
+### 3.6 离线管理与自动化脚本 (Offline Management & CLI Tools)
+为了支持脱离大模型的批量处理或通过 CI 自动化执行管理任务，系统提供了 Python CLI 工具集：
+
+1. **记忆注入工具 (`scripts/inject_memory.py`)**：将本地编写的半结构化 Markdown 复盘笔记自动归一化，并转换为符合 schema 约定的 JSON 记录。
+2. **记录更新与归档工具 (`scripts/manage_memory.py`)**：
+   - `update` 命令支持通过 CLI 修改指定记录的字段（如字符串覆写、数组追加），修改输出严格遵循 `Update Output Contract`。
+   - `archive` 命令支持一键归档指定记录，输出遵循 `Archive Output Contract`。
+3. **历史数据迁移工具 (`scripts/migrate_memory.py`)**：支持识别并处理由于 schema 演进带来的兼容性问题，目前支持将老版本（v1.0）嵌套格式的记录迁移至扁平化格式（v1.1）。支持 `--dry-run` 预览迁移结果。
+4. **检索缓存构建工具 (`scripts/build_memory_cache.py`)**：提取所有活跃复盘记录的摘要并将其汇总到 `.cache/reviews/search_index.json`。这个索引仅包含最核心的结论和少量的行动项，便于大模型快速检索和降低 Token 开销。
+5. **一致性校验工具 (`scripts/validate_reviews.py`)**：在本地或 CI 环境中全量检查所有复盘 JSON，确保必须包含 required 字段且结构合法。
+
+这些工具保证了人工直接干预或脚本自动化写入时，数据契约不会被破坏。
+
+### 3.7 向后兼容性设计 (Backward Compatibility)
 为避免在未来迭代（重构、字段调整、目录变更）时破坏既有使用方式，需落实以下向后兼容策略：
 
 - **API 稳定优先**：对外指令接口（`@skill 复盘 / 查询记忆 / 更新记忆 / 归档记忆`）与返回字段的核心语义保持稳定；如需变更，必须以“新增字段”方式扩展，避免“删除/改名”，以免破坏现有自动化脚本与工作流。
@@ -363,3 +376,4 @@ flowchart LR
 |---:|---|---|
 | 1.0.0 | 2026-04-17 | 初始版本：定义系统性复盘与记忆管理的核心能力（Prompt/Schema）、`.storage/` 与 `.cache/` 架构、多平台追踪（GitHub/GitLab/AtomGit）、以及向后兼容策略。 |
 | 1.1.0 | 2026-04-17 | 引入 Contract 强约束，规范工具白名单（Glob/Grep/Read/Write）与多文件操作流程；扁平化数据结构以降低 Token 消耗并对齐最新 schema。 |
+| 1.2.0 | 2026-04-17 | 补充本地离线管理与自动化脚本说明（新增 manage_memory / migrate_memory / build_memory_cache 脚本）；并重构所有脚本以支持 MEMORY_ROOT 等环境变量配置。 |

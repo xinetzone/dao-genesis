@@ -1,7 +1,11 @@
 import argparse
 import json
 import sys
+import os
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from config import REVIEWS_DIR, ensure_directories
 
 def load_record(review_id: str, reviews_dir: Path) -> dict:
     file_path = reviews_dir / f"{review_id}.json"
@@ -113,9 +117,8 @@ def main():
     
     args = parser.parse_args()
     
-    repo_root = Path(__file__).resolve().parents[1]
-    reviews_dir = repo_root / ".storage" / "reviews"
-    reviews_dir.mkdir(parents=True, exist_ok=True)
+    ensure_directories()
+    reviews_dir = REVIEWS_DIR
     
     if args.command == "archive":
         cmd_archive(args, reviews_dir)

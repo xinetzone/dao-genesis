@@ -1,9 +1,12 @@
 import json
 import re
 import sys
+import os
 from datetime import datetime
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from config import REVIEWS_DIR, ensure_directories
 
 def _parse_datetime(value: str) -> bool:
     if not value.endswith("Z"):
@@ -73,7 +76,9 @@ def validate_record(path: Path, schema: dict) -> list[str]:
 def main() -> int:
     repo_root = Path(__file__).resolve().parents[1]
     schema_path = repo_root / "src" / "memory-schema.json"
-    reviews_dir = repo_root / ".storage" / "reviews"
+    
+    ensure_directories()
+    reviews_dir = REVIEWS_DIR
 
     try:
         schema = json.loads(schema_path.read_text(encoding="utf-8"))
