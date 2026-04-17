@@ -45,6 +45,17 @@
 - MUST: 每条仅包含 `review_id` + 1 句核心结论 + 1 条最关键 `action_items`（若无则为 “无”）
 - FORBIDDEN: 输出完整 JSON；输出整段原文/整份复盘报告
 
+## Update Output Contract
+对已有记录执行更新/修正后，聊天返回必须满足：
+- MUST: 返回 `review_id`
+- MUST: 仅返回被修改字段的差异（例如：`action_items: [新增] 增加 Redis 缓存层`）
+- FORBIDDEN: 打印修改后的完整 JSON 或未修改的字段
+
+## Archive Output Contract
+对已有记录执行归档后，聊天返回必须满足：
+- MUST: 仅返回 `[review_id] 归档成功`
+- FORBIDDEN: 输出其他解释性文字或完整 JSON
+
 ## Query Workflow (Token Limits)
 - 先 `Glob` 定位候选：`.storage/reviews/REV-*.json`
 - 再 `Grep` 初筛关键词

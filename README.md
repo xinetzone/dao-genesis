@@ -86,7 +86,10 @@ mkdir -p .storage/reviews/ .cache/reviews/
 **更新记录：**
 > `@dao-genesis 更新记忆 REV-20260417-001，补充一条 Action Item：增加 Redis 缓存层`
 
-*(注：技能会自动遵循精简输出规范，仅返回 `review_id` 或 Top 3 的核心结论，避免刷屏。)*
+**归档记录：**
+> `@dao-genesis 归档记忆 REV-20260417-001`
+
+*(注：技能会自动遵循精简输出规范，仅返回被修改字段差异或归档成功提示，严禁输出完整 JSON。)*
 
 ---
 
