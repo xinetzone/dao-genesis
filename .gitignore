@@ -1,4 +1,6 @@
-.storage/
+.storage/**
+!.storage/reviews/
+!.storage/reviews/*.json
 .cache/
 .ssh/
 *.tar.gz
