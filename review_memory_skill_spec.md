@@ -3,7 +3,7 @@ title: 系统性复盘与记忆管理技能（Systematic Review & Memory Managem
 project: dao-genesis
 repo: daoAgents/dao-genesis
 doc_type: technical-spec
-version: 1.0.0
+version: 1.2.0
 status: active
 audience: team
 authors:
@@ -22,7 +22,7 @@ updated_at: 2026-04-17
 
 | 字段 | 值 |
 |---|---|
-| 文档版本 | 1.0.0 |
+| 文档版本 | 1.2.0 |
 | 状态 | active |
 | 作者 | xinetzone |
 | 受众 | 团队协作 |
@@ -72,9 +72,66 @@ updated_at: 2026-04-17
 5. **Token 优化控制**：在读取上下文、生成复盘报告及检索结果时，自动应用摘要、过滤与截断策略，最小化不必要的 Token 消耗。
 
 # Workflow
-- **当收到复盘指令时**：分析提供的上下文/历史记录 -> 提取关键信息 -> 按照定义的结构化格式生成**极简**复盘报告 -> 写入记忆库。
-- **当收到查询指令时**：解析用户查询条件 -> 在记忆库中执行检索（精确/模糊匹配） -> 仅提取**最核心的结论与行动建议**进行结构化返回，避免大段原文输出。
+- **当收到复盘指令时**：分析提供的上下文/历史记录 -> 提取关键信息 -> 按照定义的结构化格式生成**极简**复盘报告 -> 写入记忆库（遵循 Contract）。
+- **当收到查询指令时**：解析用户查询条件 -> 在记忆库中执行检索（精确/模糊匹配） -> 仅提取**最核心的结论与行动建议**进行结构化返回（遵循 Contract），避免大段原文输出。
 - **当收到更新指令时**：定位目标记录 -> 对比新旧信息 -> 执行更新/修正/归档 -> 返回**精简**的更新结果。
+
+# Contract (Strict)
+以下规则为强约束。若与其他段落冲突，以本段为准。
+
+## Allowed Tools (Whitelist)
+仅允许使用：`Glob`、`Grep`、`Read`、`Write`
+禁止使用：任何 Shell 命令、以及任何未在白名单中的工具名。
+
+## Storage Contract
+- Root: `.storage/reviews/`
+- File & ID: `REV-YYYYMMDD-NNN.json` 且 `review_id` 必须匹配 `^REV-[0-9]{8}-[0-9]{3}$`
+- Schema: 必须严格满足 `src/memory-schema.json`
+  - required: `review_id`, `timestamp`, `participants`, `task_type`, `decisions`, `success_factors`, `failure_reasons`, `best_practices`, `action_items`, `status`
+  - `timestamp`: ISO 8601 date-time（例：`2026-04-17T08:24:00Z`）
+  - 数组字段缺失必须写 `[]`
+  - `status`: 仅允许 `active|archived`，默认 `active`
+  - 禁止额外字段（`additionalProperties=false`）
+
+## Write (Retrospective) Output Contract
+写入成功后聊天返回必须满足：
+- MUST: 仅返回 `review_id`
+- OPTIONAL: 可追加 1 行 file path（不包含 JSON 内容）
+- FORBIDDEN: 输出完整 JSON；输出超过 10 行的复盘详情
+
+## Query Output Contract (Top N=3)
+查询结果返回必须满足：
+- MUST: 最多返回 3 条命中
+- MUST: 每条仅包含 `review_id` + 1 句核心结论 + 1 条最关键 `action_items`（若无则为 “无”）
+- FORBIDDEN: 输出完整 JSON；输出整段原文/整份复盘报告
+
+## Query Workflow (Token Limits)
+- 先 `Glob` 定位候选：`.storage/reviews/REV-*.json`
+- 再 `Grep` 初筛关键词
+- 后 `Read` 少量命中文件片段
+- Hard Limits: 最多读取 3 个文件；每个文件最多读取 120 行片段（必要时使用 `offset/limit`）
+- 超出阈值：必须要求用户补充更精确的查询条件
+
+# Multi-File Operations Guidelines
+在执行跨文件或多文件操作时，必须严格遵守以下原生文件工具使用顺序，以确保高效准确并节省 Token：
+1. **先定位 (Glob/Grep)**：首先使用 `Glob`（通过文件名模式匹配）或 `Grep`（通过文件内容或正则匹配）快速定位目标文件的绝对路径。杜绝盲目列举整个大目录。
+2. **再读取 (Read)**：获取到目标路径后，使用 `Read` 工具针对性地读取具体文件内容。对于大文件，必须使用 `offset` 和 `limit` 参数只读取所需片段，避免 Token 浪费。
+3. **后修改 (Write)**：分析完内容后，基于已读取片段整理出完整的新文件内容并使用 `Write` 覆盖写回；严禁使用 Shell 命令操作文件内容。
+
+# Strict Examples for Minimalist Returns (Token Optimization)
+在进行查询或代码审查等回复时，必须采用极致的 Token 优化策略，仅返回最核心的差异、结论或行动点，杜绝任何冗余的礼貌用语、过渡性语句或重复的上下文内容。
+
+**Example 1: Query Result (极简返回)**
+*Bad (冗长):* "我帮您查询了所有相关复盘记录，并把每条记录的完整 JSON 都贴出来了，方便你逐条阅读..."
+*Good (极简):*
+> - `REV-20260417-002` | 核心结论：Schema 扁平化降低写入难度 | 行动：统一工具白名单并补齐极简输出模板
+
+**Example 2: Code Review (极简返回)**
+*Bad (冗长):* "我仔细审查了您提交的 `user_service.py` 文件的代码。总体来说写得不错，但是有几个地方需要改进。首先在第 45 行，这里没有对输入的用户名进行非空校验，这可能会导致空指针异常。其次..."
+*Good (极简):*
+> **Review: user_service.py**
+> - **L45**: Missing null check for `username`. Fix: `if not username: raise ValueError()`
+> - **L82**: Unhandled DB exception. Fix: Add `try...except`.
 ```
 
 ## 2.1 架构总览 (Architecture Overview)
@@ -123,34 +180,18 @@ flowchart LR
 ```json
 {
   "review_id": "REV-20260417-001",
-  "system_meta": {
-    "schema_version": "1.0",
-    "source_platform": "macOS-Trae",
-    "project_id": "core-backend"
-  },
-  "metadata": {
-    "timestamp": "2026-04-17T10:00:00Z",
-    "participants": ["User", "AI Agent"],
-    "task_type": "Feature Implementation",
-    "tags": ["React", "Authentication", "Bugfix"],
-    "trace_links": [
-      "https://github.com/owner/repo/pull/123",
-      "https://atomgit.com/owner/repo/issues/456"
-    ]
-  },
-  "key_findings": {
-    "decisions": ["采用了 JWT 方案替代 Session 以支持跨端状态同步"],
-    "obstacles": ["第三方 OAuth 接口回调延迟导致前端状态卡死"]
-  },
-  "lessons_learned": {
-    "success_factors": ["提前定义了清晰的 API 接口契约"],
-    "failure_reasons": ["未对外部接口设置超时重试机制"]
-  },
+  "timestamp": "2026-04-17T10:00:00Z",
+  "participants": ["User", "AI Agent"],
+  "task_type": "Feature Implementation",
+  "decisions": ["采用了 JWT 方案替代 Session 以支持跨端状态同步"],
+  "success_factors": ["提前定义了清晰的 API 接口契约"],
+  "failure_reasons": ["未对外部接口设置超时重试机制导致前端状态卡死"],
+  "best_practices": ["所有对外部服务的调用必须设置超时机制和重试策略"],
   "action_items": [
     "在全局请求拦截器中增加统一的超时重试逻辑",
     "将 JWT 解析逻辑封装为通用 Hook"
   ],
-  "status": "active" // active | archived
+  "status": "active"
 }
 ```
 
@@ -167,15 +208,15 @@ flowchart LR
 - **一致性校验**：每次写入或更新时，校验 JSON 结构的完整性，避免破坏记忆库文件。
 
 ### 3.5 接口规范与精简输出要求 (Interface & Output Specifications)
-用户可通过自然语言触发以下标准接口（指令），技能必须保证输出格式的极致精简：
+用户可通过自然语言触发以下标准接口（指令），技能必须保证输出格式的极致精简，并遵循 `Glob/Grep/Read/Write` 工具白名单及读取硬阈值：
 
 1. **`@skill 复盘 [任务描述/上下文]`**
-   - **行为**：执行系统性复盘，生成结构化数据并自动保存。
-   - **返回**：仅返回 `review_id` 与 1-2 句最核心的 `action_items` 摘要。不重复展示完整的 JSON。
+   - **行为**：执行系统性复盘，生成结构化数据并自动保存（仅限 `.storage/reviews/`）。
+   - **返回**：仅返回 `review_id` 与 1-2 句最核心的 `action_items` 摘要。严禁大段输出完整的 JSON。
 
 2. **`@skill 查询记忆 [关键词/时间/类型]`**
-   - **行为**：解析检索条件，在记忆库中搜索匹配的记录。
-   - **返回**：按相关度返回 Top 3 匹配结果。每个结果仅保留：`[review_id] 核心结论：xxx | 建议：xxx`。
+   - **行为**：解析检索条件，按 `Glob -> Grep -> Read` 流程在记忆库中执行检索。执行 `Read` 时最多读取 3 个文件、每个文件最多 120 行。
+   - **返回**：按相关度返回 Top 3 匹配结果。每个结果仅保留：`[review_id] 核心结论：xxx | 行动：xxx`。严禁输出整段原文/整份复盘报告。
 
 3. **`@skill 更新记忆 [review_id] [修改内容]`**
    - **行为**：定位对应记录并执行更新。
@@ -209,12 +250,25 @@ flowchart LR
 | JSON 结构不兼容/损坏 | `E_SCHEMA_MISMATCH` | `E_SCHEMA_MISMATCH | schema_version=0.9 不兼容或文件损坏` | 按 3.6 执行迁移；恢复备份后重试 |
 | 写入冲突/并发编辑 | `E_WRITE_CONFLICT` | `E_WRITE_CONFLICT | 同一记录被并发修改` | 拆分记录或先合并冲突再更新 |
 
-### 3.6 向后兼容性设计 (Backward Compatibility)
+### 3.6 离线管理与自动化脚本 (Offline Management & CLI Tools)
+为了支持脱离大模型的批量处理或通过 CI 自动化执行管理任务，系统提供了 Python CLI 工具集：
+
+1. **记忆注入工具 (`scripts/inject_memory.py`)**：将本地编写的半结构化 Markdown 复盘笔记自动归一化，并转换为符合 schema 约定的 JSON 记录。
+2. **记录更新与归档工具 (`scripts/manage_memory.py`)**：
+   - `update` 命令支持通过 CLI 修改指定记录的字段（如字符串覆写、数组追加），修改输出严格遵循 `Update Output Contract`。
+   - `archive` 命令支持一键归档指定记录，输出遵循 `Archive Output Contract`。
+3. **历史数据迁移工具 (`scripts/migrate_memory.py`)**：支持识别并处理由于 schema 演进带来的兼容性问题，目前支持将老版本（v1.0）嵌套格式的记录迁移至扁平化格式（v1.1）。支持 `--dry-run` 预览迁移结果。
+4. **检索缓存构建工具 (`scripts/build_memory_cache.py`)**：提取所有活跃复盘记录的摘要并将其汇总到 `.cache/reviews/search_index.json`。这个索引仅包含最核心的结论和少量的行动项，便于大模型快速检索和降低 Token 开销。
+5. **一致性校验工具 (`scripts/validate_reviews.py`)**：在本地或 CI 环境中全量检查所有复盘 JSON，确保必须包含 required 字段且结构合法。
+
+这些工具保证了人工直接干预或脚本自动化写入时，数据契约不会被破坏。
+
+### 3.7 向后兼容性设计 (Backward Compatibility)
 为避免在未来迭代（重构、字段调整、目录变更）时破坏既有使用方式，需落实以下向后兼容策略：
 
 - **API 稳定优先**：对外指令接口（`@skill 复盘 / 查询记忆 / 更新记忆 / 归档记忆`）与返回字段的核心语义保持稳定；如需变更，必须以“新增字段”方式扩展，避免“删除/改名”，以免破坏现有自动化脚本与工作流。
 - **兼容层机制**：当数据结构或目录结构演进时，通过兼容层实现旧字段/旧路径到新字段/新路径的映射。并保持 `review_id` 不变，确保平滑迁移。
-- **基于版本的迁移**：所有记录携带 `system_meta.schema_version`。读取时根据版本执行“按需迁移”（read-time migration）或批量迁移（offline migration）。迁移策略必须满足：幂等、可回滚、可重跑。
+- **基于版本的迁移**：建议在项目配置或约定的统一标识中维护 `schema_version`（或在数据演进时引入版本字段）。读取时根据版本执行“按需迁移”（read-time migration）或批量迁移（offline migration）。迁移策略必须满足：幂等、可回滚、可重跑。
 - **弃用策略 (Deprecation Policy)**：对即将淘汰的字段或目录，至少保留一个次版本的兼容读取能力，并在复盘输出或更新结果中以最小化方式提示“已弃用但仍兼容”。当确认团队已完成迁移后，再移除兼容层。
 - **测试覆盖与回归验证**：建立回归测试集与契约测试（Contract Tests），至少覆盖：旧版本样例数据可读取、指令级输出格式与字段语义不变、迁移后数据一致性校验通过、TopK 检索在相同数据集下结果稳定、缓存目录缺失/清空时系统仍可正常工作。
 
@@ -253,9 +307,9 @@ flowchart LR
 - **跨项目全局记忆 (可选)**：对于不受限于具体项目的通用架构经验，可配置写入用户的全局目录（如 `~/.trae/global_storage/`），由云盘（iCloud、OneDrive 等）进行多设备无缝同步。
 
 ### 5.3 多端数据标识 (Data Provenance)
-正如 3.2 节的数据模型所示，所有记忆节点必须包含 `system_meta` 字段。
-- `schema_version` 保证了即使未来数据结构发生变更（如新增字段），不同版本的客户端在读取旧记忆时也能实现平滑的向下兼容或自动化迁移。
-- `source_platform` 与 `project_id` 确保了即使全局记忆库汇聚了来自不同项目或不同操作系统的复盘数据，依然能够基于数据血缘进行准确的过滤与追溯。
+为了支持更复杂的团队协同，若未来的数据模型中补充了多端数据标识（如增加版本字段或平台标识字段）：
+- 版本标识（如 `schema_version`）可保证即使未来数据结构发生变更，不同版本的客户端在读取旧记忆时也能实现平滑的向下兼容或自动化迁移。
+- 环境标识（如 `source_platform` 与 `project_id`）可确保在全局记忆库汇聚不同项目或系统的复盘数据时，依然能够基于数据血缘进行准确的过滤与追溯。
 
 ## 6. 最佳实践与实施指南 (Best Practices & Implementation Guide)
 
@@ -321,3 +375,5 @@ flowchart LR
 | 版本 | 日期 | 变更摘要 |
 |---:|---|---|
 | 1.0.0 | 2026-04-17 | 初始版本：定义系统性复盘与记忆管理的核心能力（Prompt/Schema）、`.storage/` 与 `.cache/` 架构、多平台追踪（GitHub/GitLab/AtomGit）、以及向后兼容策略。 |
+| 1.1.0 | 2026-04-17 | 引入 Contract 强约束，规范工具白名单（Glob/Grep/Read/Write）与多文件操作流程；扁平化数据结构以降低 Token 消耗并对齐最新 schema。 |
+| 1.2.0 | 2026-04-17 | 补充本地离线管理与自动化脚本说明（新增 manage_memory / migrate_memory / build_memory_cache 脚本）；并重构所有脚本以支持 MEMORY_ROOT 等环境变量配置。 |
