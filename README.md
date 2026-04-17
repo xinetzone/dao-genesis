@@ -116,6 +116,27 @@ python scripts/inject_memory.py <path_to_markdown_or_directory> --dry-run
 
 *(注：技能会自动遵循精简输出规范，仅返回被修改字段差异或归档成功提示，严禁输出完整 JSON。)*
 
+### 记忆管理本地脚本 (Memory Manager)
+
+如果需要脱离大模型，通过本地命令行直接修改或归档历史记录，可使用提供的管理脚本。这能确保更新后的数据始终符合 Schema 且不会引入额外字段。
+
+**更新记录：**
+```bash
+# 覆盖字符串字段（如 task_type, status）
+python scripts/manage_memory.py update REV-20260417-001 --field task_type --value "Bug Fix"
+
+# 覆盖数组字段（如 action_items, decisions）
+python scripts/manage_memory.py update REV-20260417-001 --field action_items --value "重构鉴权模块"
+
+# 向数组字段追加内容（使用 --append 或 -a）
+python scripts/manage_memory.py update REV-20260417-001 --field action_items --value "补充鉴权单元测试" --append
+```
+
+**归档记录：**
+```bash
+python scripts/manage_memory.py archive REV-20260417-001
+```
+
 ---
 
 ## 📂 仓库结构 (Repository Structure)
