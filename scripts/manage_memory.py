@@ -25,24 +25,31 @@ def save_record(review_id: str, data: dict, reviews_dir: Path):
         sys.exit(1)
 
 def cmd_archive(args, reviews_dir: Path):
-    review_id = args.review_id
-    data = load_record(review_id, reviews_dir)
-    
-    if data.get("status") == "archived":
-        print(f"[{review_id}] 归档成功")
-        return
-    
-    data["status"] = "archived"
-    save_record(review_id, data, reviews_dir)
-    print(f"[{review_id}] 归档成功")
+    review_ids = args.review_id
+    if not isinstance(review_ids, list):
+        review_ids = [review_ids]
+        
+    for review_id in review_ids:
+        try:
+            data = load_record(review_id, reviews_dir)
+            if data.get("status") == "archived":
+                print(f"[{review_id}] 已归档，无需操作")
+                continue
+                
+            data["status"] = "archived"
+            save_record(review_id, data, reviews_dir)
+            print(f"[{review_id}] 归档成功")
+        except Exception as e:
+            print(f"[{review_id}] 归档失败: {e}", file=sys.stderr)
 
 def cmd_update(args, reviews_dir: Path):
-    review_id = args.review_id
+    review_ids = args.review_id
+    if not isinstance(review_ids, list):
+        review_ids = [review_ids]
+        
     field = args.field
     value = args.value
     append = args.append
-    
-    data = load_record(review_id, reviews_dir)
     
     # Valid fields mapping
     array_fields = {
@@ -66,25 +73,28 @@ def cmd_update(args, reviews_dir: Path):
         print(f"Error: Cannot append to a string field '{field}'.", file=sys.stderr)
         sys.exit(1)
         
-    print(f"[{review_id}]")
-    
-    if field in array_fields:
-        if field not in data or not isinstance(data[field], list):
-            data[field] = []
+    for review_id in review_ids:
+        try:
+            data = load_record(review_id, reviews_dir)
+            print(f"[{review_id}]")
             
-        if append:
-            data[field].append(value)
-            print(f"{field}: [新增] {value}")
-        else:
-            # Overwrite the array with a single element
-            data[field] = [value]
-            print(f"{field}: [修改] {value}")
-    else:
-        # String fields
-        data[field] = value
-        print(f"{field}: [修改] {value}")
-        
-    save_record(review_id, data, reviews_dir)
+            if field in array_fields:
+                if field not in data or not isinstance(data[field], list):
+                    data[field] = []
+                    
+                if append:
+                    data[field].append(value)
+                    print(f"  {field}: [新增] {value}")
+                else:
+                    data[field] = [value]
+                    print(f"  {field}: [修改] {value}")
+            else:
+                data[field] = value
+                print(f"  {field}: [修改] {value}")
+                
+            save_record(review_id, data, reviews_dir)
+        except Exception as e:
+            print(f"[{review_id}] 更新失败: {e}", file=sys.stderr)
 
 def main():
     parser = argparse.ArgumentParser(description="Manage local memory records (Update & Archive).")
@@ -92,11 +102,11 @@ def main():
     
     # Archive command
     parser_archive = subparsers.add_parser("archive", help="Archive a memory record.")
-    parser_archive.add_argument("review_id", type=str, help="The ID of the review record (e.g., REV-20260417-001)")
+    parser_archive.add_argument("review_id", type=str, nargs="+", help="The ID(s) of the review record (e.g., REV-20260417-001 REV-20260417-002)")
     
     # Update command
     parser_update = subparsers.add_parser("update", help="Update a field in a memory record.")
-    parser_update.add_argument("review_id", type=str, help="The ID of the review record")
+    parser_update.add_argument("review_id", type=str, nargs="+", help="The ID(s) of the review record")
     parser_update.add_argument("--field", "-f", type=str, required=True, help="Field to update")
     parser_update.add_argument("--value", "-v", type=str, required=True, help="New value to set or append")
     parser_update.add_argument("--append", "-a", action="store_true", help="Append to an array field instead of overwriting")
