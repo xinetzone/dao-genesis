@@ -148,6 +148,24 @@ python scripts/manage_memory.py archive REV-20260417-001 REV-20260417-002
 - `scripts/build_memory_cache.py`: 提取活跃复盘记录的摘要并生成检索缓存索引 (`.cache/reviews/search_index.json`)，用于极大降低长周期检索时的 Token 消耗。
 - `scripts/search_memory.py`: 交互式的 CLI 工具，可本地查询缓存索引。支持关键词匹配、显示归档记录 (`--all`)、输出完整 JSON (`--verbose`) 等。
 
+### 全局记忆同步 (Global Memory Sync)
+
+如果你希望在多个项目或多台设备之间共享复盘经验，你可以使用 `scripts/sync_global.py` 脚本，将部分记录保存到一个独立的、全局的 Git 仓库中（默认位于 `~/.trae/global_storage/`）。
+
+```bash
+# 1. 初始化全局仓库（克隆你准备好的专用 GitHub 仓库）
+python scripts/sync_global.py init git@github.com:yourname/global-memory.git
+
+# 2. 将当前项目的复盘分享/复制到全局目录
+python scripts/sync_global.py share REV-20260417-001
+
+# 3. 将本地新增的全局记录推送到远端云盘（Git Push）
+python scripts/sync_global.py push
+
+# 4. 在新设备或新项目中，拉取云端最新经验（Git Pull）
+python scripts/sync_global.py pull
+```
+
 ---
 
 ## 📂 仓库结构 (Repository Structure)
