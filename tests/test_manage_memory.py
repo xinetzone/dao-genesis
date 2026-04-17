@@ -24,7 +24,7 @@ def test_archive_success(tmp_path, capsys):
     }
     record_file.write_text(json.dumps(initial_data), encoding="utf-8")
     
-    args = MockArgs(review_id=review_id)
+    args = MockArgs(review_id=[review_id])
     cmd_archive(args, tmp_path)
     
     # Assert output
@@ -45,12 +45,12 @@ def test_archive_already_archived(tmp_path, capsys):
     }
     record_file.write_text(json.dumps(initial_data), encoding="utf-8")
     
-    args = MockArgs(review_id=review_id)
+    args = MockArgs(review_id=[review_id])
     cmd_archive(args, tmp_path)
     
     # Assert output
     captured = capsys.readouterr()
-    assert "归档成功" in captured.out
+    assert "已归档，无需操作" in captured.out
     
     # Assert file content remains same
     updated_data = json.loads(record_file.read_text(encoding="utf-8"))
@@ -65,7 +65,7 @@ def test_update_string_field(tmp_path, capsys):
     }
     record_file.write_text(json.dumps(initial_data), encoding="utf-8")
     
-    args = MockArgs(review_id=review_id, field="task_type", value="New Task")
+    args = MockArgs(review_id=[review_id], field="task_type", value="New Task")
     cmd_update(args, tmp_path)
     
     captured = capsys.readouterr()
@@ -83,7 +83,7 @@ def test_update_array_field_overwrite(tmp_path, capsys):
     }
     record_file.write_text(json.dumps(initial_data), encoding="utf-8")
     
-    args = MockArgs(review_id=review_id, field="action_items", value="New Action", append=False)
+    args = MockArgs(review_id=[review_id], field="action_items", value="New Action", append=False)
     cmd_update(args, tmp_path)
     
     captured = capsys.readouterr()
@@ -101,7 +101,7 @@ def test_update_array_field_append(tmp_path, capsys):
     }
     record_file.write_text(json.dumps(initial_data), encoding="utf-8")
     
-    args = MockArgs(review_id=review_id, field="action_items", value="Appended Action", append=True)
+    args = MockArgs(review_id=[review_id], field="action_items", value="Appended Action", append=True)
     cmd_update(args, tmp_path)
     
     captured = capsys.readouterr()

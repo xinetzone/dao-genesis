@@ -130,16 +130,23 @@ python scripts/manage_memory.py update REV-20260417-001 --field action_items --v
 
 # 向数组字段追加内容（使用 --append 或 -a）
 python scripts/manage_memory.py update REV-20260417-001 --field action_items --value "补充鉴权单元测试" --append
+
+# 批量更新记录
+python scripts/manage_memory.py update REV-20260417-001 REV-20260417-002 --field task_type --value "Feature"
 ```
 
 **归档记录：**
 ```bash
 python scripts/manage_memory.py archive REV-20260417-001
+
+# 批量归档
+python scripts/manage_memory.py archive REV-20260417-001 REV-20260417-002
 ```
 
 **其他自动化脚本：**
 - `scripts/migrate_memory.py`: 用于处理 Schema 升级时的旧数据自动化迁移。
 - `scripts/build_memory_cache.py`: 提取活跃复盘记录的摘要并生成检索缓存索引 (`.cache/reviews/search_index.json`)，用于极大降低长周期检索时的 Token 消耗。
+- `scripts/search_memory.py`: 交互式的 CLI 工具，可本地查询缓存索引。支持关键词匹配、显示归档记录 (`--all`)、输出完整 JSON (`--verbose`) 等。
 
 ---
 
