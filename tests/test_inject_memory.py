@@ -5,7 +5,25 @@ from pathlib import Path
 scripts_dir = Path(__file__).resolve().parents[1] / "scripts"
 sys.path.append(str(scripts_dir))
 
-from inject_memory import normalize_bullet, parse_markdown, fill_defaults_and_metadata
+from inject_memory import normalize_bullet, parse_markdown, fill_defaults_and_metadata, IDGenerator
+
+def test_id_generator_empty(tmp_path):
+    # tmp_path 是 pytest 提供的临时目录 fixture
+    generator = IDGenerator(tmp_path, "20260417")
+    assert generator.next_id() == "REV-20260417-001"
+    assert generator.next_id() == "REV-20260417-002"
+
+def test_id_generator_existing(tmp_path):
+    # 模拟已存在的记录
+    (tmp_path / "REV-20260417-005.json").touch()
+    (tmp_path / "REV-20260417-042.json").touch()
+    # 模拟无关文件或其它日期的记录
+    (tmp_path / "REV-20260416-099.json").touch()
+    (tmp_path / "other.json").touch()
+
+    generator = IDGenerator(tmp_path, "20260417")
+    assert generator.next_id() == "REV-20260417-043"
+    assert generator.next_id() == "REV-20260417-044"
 
 def test_normalize_bullet_basic():
     assert normalize_bullet("- Item 1") == "Item 1"
