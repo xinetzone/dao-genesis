@@ -7,3 +7,4 @@
 .DS_Store
 node_modules/
 .env
+\n__pycache__/\n.pytest_cache/
