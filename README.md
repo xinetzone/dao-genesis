@@ -59,6 +59,21 @@ mkdir -p .storage/reviews/ .cache/reviews/
 **生成复盘：**
 > `@dao-genesis 复盘刚才我们修复的 JWT 跨域登录问题`
 
+### 记忆注入工具 (Memory Injector)
+
+除了让大模型生成复盘，你也可以使用提供的 Python CLI 工具，将本地用 Markdown 写的半结构化复盘笔记直接转换为符合 Schema 的 JSON 记录。
+
+**运行脚本：**
+```bash
+python scripts/inject_memory.py <path_to_markdown>
+```
+
+**Markdown 格式要求：**
+使用二级或三级标题（如 `## 关键决策` 或 `### Action Items`）来区分字段，脚本会自动解析并填充到 `.storage/reviews/REV-YYYYMMDD-NNN.json` 中。
+缺失的数组字段会自动填充为 `[]`，确保数据始终合法。
+
+---
+
 **查询经验：**
 > `@dao-genesis 查询记忆：关于 React Native 列表性能优化的经验`
 
