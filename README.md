@@ -59,7 +59,26 @@ mkdir -p .storage/reviews/ .cache/reviews/
 ```
 
 ### 3. 配置 AI 技能 (Skill Setup)
-如果你使用的是支持自定义技能/Agent 的 IDE（如 Trae）：
+
+如果你使用的是支持自定义技能/Agent 的 IDE（如 Trae），有两种方式将其包装为 Skill：
+
+#### 方式 A：通过 MCP Server (推荐)
+本项目已封装为标准的 MCP (Model Context Protocol) Server，大模型可以直接调用复盘和查询的底层 API。
+1. 确保已安装 `uv` 和 `uvx` (用于运行 Python 环境)。
+2. 在项目根目录（或 IDE 的全局配置中）引入 `.trae/mcp.json`：
+```json
+{
+  "mcpServers": {
+    "dao-genesis": {
+      "command": "uvx",
+      "args": ["--from", "mcp", "fastmcp", "run", "src/mcp_server.py"]
+    }
+  }
+}
+```
+3. 重启 IDE，大模型即可直接使用 `search_reviews`、`update_review`、`archive_review` 等原生工具。
+
+#### 方式 B：通过 System Prompt 注入
 1. 复制本仓库 [src/system-prompt.md](./src/system-prompt.md) 中的内容，作为该技能的 System Prompt。
 2. 为技能勾选 **读写本地文件 (`Read`/`Write`)** 和 **文件检索 (`Glob`/`Grep`)** 的工具权限。
 3. (可选) 将 [src/memory-schema.json](./src/memory-schema.json) 作为上下文提供给大模型，确保其严格按照 Schema 生成记忆。
