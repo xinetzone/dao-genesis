@@ -62,6 +62,27 @@ mkdir -p .storage/reviews/ .cache/reviews/
 **查询经验：**
 > `@dao-genesis 查询记忆：关于 React Native 列表性能优化的经验`
 
+### 查询演示（遵循 Contract）
+
+用户指令示例：
+> `@dao-genesis 查询记忆：schema 扁平化 工具白名单`
+
+内部工具流程（用于调试与对齐 Contract）：
+1) Glob：定位候选文件（`.storage/reviews/REV-*.json`）
+2) Grep：用关键词初筛命中记录（必要时拆分多个关键词）
+3) Read：仅读取少量命中文件片段以提炼“核心结论/行动项”
+
+读取硬阈值：
+- 最多读取 3 个文件
+- 每个文件最多读取 120 行片段（必要时用 offset/limit）
+
+期望输出（Top N=3，极简返回）：
+- `REV-20260417-002` | 核心结论：Schema 扁平化降低写入难度 | 行动：统一工具白名单并补齐极简输出模板
+
+禁止：
+- 输出完整 JSON
+- 输出整段原文/整份复盘报告
+
 **更新记录：**
 > `@dao-genesis 更新记忆 REV-20260417-001，补充一条 Action Item：增加 Redis 缓存层`
 
@@ -96,4 +117,3 @@ daoAgents/dao-genesis/
 ## 📄 协议 (License)
 
 本项目采用 [Apache-2.0 License](./LICENSE) 开源。
-
