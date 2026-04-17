@@ -59,13 +59,62 @@ mkdir -p .storage/reviews/ .cache/reviews/
 **生成复盘：**
 > `@dao-genesis 复盘刚才我们修复的 JWT 跨域登录问题`
 
+### 记忆注入工具 (Memory Injector)
+
+除了让大模型生成复盘，你也可以使用提供的 Python CLI 工具，将本地用 Markdown 写的半结构化复盘笔记直接转换为符合 Schema 的 JSON 记录。
+
+**运行脚本：**
+```bash
+# 转换单个文件
+python scripts/inject_memory.py <path_to_markdown>
+
+# 批量转换一个目录下的所有 .md 文件
+python scripts/inject_memory.py <path_to_directory>
+
+# 递归批量转换目录及其子目录下的所有 .md 文件
+python scripts/inject_memory.py <path_to_directory> -r
+
+# 干跑预览（Dry-Run）：只打印解析生成的 JSON 结果，不写入磁盘
+python scripts/inject_memory.py <path_to_markdown_or_directory> --dry-run
+```
+
+**Markdown 格式要求：**
+使用二级或三级标题（如 `## 关键决策` 或 `### Action Items`）来区分字段，脚本会自动解析并填充到 `.storage/reviews/REV-YYYYMMDD-NNN.json` 中。
+缺失的数组字段会自动填充为 `[]`，确保数据始终合法。
+
+---
+
 **查询经验：**
 > `@dao-genesis 查询记忆：关于 React Native 列表性能优化的经验`
+
+### 查询演示（遵循 Contract）
+
+用户指令示例：
+> `@dao-genesis 查询记忆：schema 扁平化 工具白名单`
+
+内部工具流程（用于调试与对齐 Contract）：
+1) Glob：定位候选文件（`.storage/reviews/REV-*.json`）
+2) Grep：用关键词初筛命中记录（必要时拆分多个关键词）
+3) Read：仅读取少量命中文件片段以提炼“核心结论/行动项”
+
+读取硬阈值：
+- 最多读取 3 个文件
+- 每个文件最多读取 120 行片段（必要时用 offset/limit）
+
+期望输出（Top N=3，极简返回）：
+- `REV-20260417-002` | 核心结论：Schema 扁平化降低写入难度 | 行动：统一工具白名单并补齐极简输出模板
+
+禁止：
+- 输出完整 JSON
+- 输出整段原文/整份复盘报告
 
 **更新记录：**
 > `@dao-genesis 更新记忆 REV-20260417-001，补充一条 Action Item：增加 Redis 缓存层`
 
-*(注：技能会自动遵循精简输出规范，仅返回 `review_id` 或 Top 3 的核心结论，避免刷屏。)*
+**归档记录：**
+> `@dao-genesis 归档记忆 REV-20260417-001`
+
+*(注：技能会自动遵循精简输出规范，仅返回被修改字段差异或归档成功提示，严禁输出完整 JSON。)*
 
 ---
 
@@ -96,4 +145,3 @@ daoAgents/dao-genesis/
 ## 📄 协议 (License)
 
 本项目采用 [Apache-2.0 License](./LICENSE) 开源。
-

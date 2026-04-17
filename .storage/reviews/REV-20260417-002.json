@@ -1,0 +1,33 @@
+{
+  "review_id": "REV-20260417-002",
+  "timestamp": "2026-04-17T08:24:00Z",
+  "participants": [
+    "User",
+    "AI Agent"
+  ],
+  "task_type": "System Review & Memory Skill Creation",
+  "decisions": [
+    "采用扁平化 memory schema（顶层字段）以降低提取与写入难度",
+    "在 system prompt 中强调多文件操作顺序（Glob/Grep -> Read -> Write）以节省 Token",
+    "在 CI 中强制 JavaScript actions 走 Node.js 24 以规避 Node 20 弃用风险"
+  ],
+  "success_factors": [
+    "先固化 schema 与 prompt 约束，再补充 mock 数据与验证流程",
+    "用最小可运行的 CI 校验（json.tool）快速建立反馈回路"
+  ],
+  "failure_reasons": [
+    "工具白名单表述存在不一致（SearchReplace vs 仅 Read/Write/Glob/Grep），会导致执行时歧义",
+    "缺少可验收的极简输出模板（写入/查询/更新的返回字段未硬性规定）"
+  ],
+  "best_practices": [
+    "对外输出先定义“必须返回/禁止返回”的模板，避免模型自由发挥导致 Token 浪费",
+    "Schema 先稳定再扩展，字段越少越利于一致性与检索效果",
+    "CI 先保证最关键的契约检查可持续运行，再逐步加严规则"
+  ],
+  "action_items": [
+    "将 system prompt 工具白名单统一为 Read/Write/Glob/Grep，并移除 SearchReplace 表述",
+    "为复盘写入/查询/更新补齐极简输出模板与禁止项（禁止输出完整 JSON）",
+    "补充基于 .storage/reviews 的检索演示流程（Glob + Grep 初筛 + 少量 Read）"
+  ],
+  "status": "active"
+}

@@ -1,7 +1,10 @@
-.storage/
+.storage/**
+!.storage/reviews/
+!.storage/reviews/*.json
 .cache/
 .ssh/
 *.tar.gz
 .DS_Store
 node_modules/
 .env
+\n__pycache__/\n.pytest_cache/
