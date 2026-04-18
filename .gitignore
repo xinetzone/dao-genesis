@@ -121,7 +121,9 @@ venv.bak/
 
 # PDM
 .pdm.toml
-pdm.lock
+# pdm.lock  # 不排除，允许提交到版本控制以确保团队依赖一致
+.pdm-python
+.pdm-build/
 
 # Spyder project settings
 .spyderproject
@@ -147,7 +149,7 @@ draft/
 *.o
 
 # PDM
-pdm.lock
+# pdm.lock  # 不排除，允许提交到版本控制以确保团队依赖一致
 .pdm-python
 .pdm-build/
 
