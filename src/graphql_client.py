@@ -11,9 +11,13 @@ class GraphQLClient:
             'query': query,
             'variables': variables or {}
         }
-        response = requests.post(self.url, json=payload)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.post(self.url, json=payload, timeout=30)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            # 处理网络异常、超时、连接错误等
+            raise Exception(f"GraphQL查询请求失败: {str(e)}")
     
     def mutate(self, mutation, variables=None):
         """执行GraphQL变更"""
@@ -21,9 +25,13 @@ class GraphQLClient:
             'query': mutation,
             'variables': variables or {}
         }
-        response = requests.post(self.url, json=payload)
-        response.raise_for_status()
-        return response.json()
+        try:
+            response = requests.post(self.url, json=payload, timeout=30)
+            response.raise_for_status()
+            return response.json()
+        except requests.exceptions.RequestException as e:
+            # 处理网络异常、超时、连接错误等
+            raise Exception(f"GraphQL变更请求失败: {str(e)}")
     
     # 配置相关操作
     def get_config(self):
