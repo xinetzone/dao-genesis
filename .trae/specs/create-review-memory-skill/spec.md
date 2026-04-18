@@ -6,6 +6,91 @@
 
 当前 AI 助手在执行复杂工程项目时缺乏跨会话的记忆管理能力，导致无法从历史任务中提取和复用经验。需要构建一个 **基于图思维（Graph Thinking）** 的结构化复盘与记忆管理机制，使 AI 能够自动提取高价值经验、沉淀最佳实践、避免重复错误，并支持团队协作与跨平台同步。
 
+### 1.1.1 技术栈要求
+
+- **Python 版本**：必须使用 Python 3.14 及更高版本进行开发实现
+- **框架选择**：建议采用 FastAPI 框架进行开发，需确保框架版本与 Python 3.14+ 兼容
+- **编码规范**：代码需遵循 PEP 8 编码规范，确保可维护性和可读性
+- **质量保障**：实现过程中应考虑错误处理、日志记录及性能优化
+- **文档要求**：开发完成后需提供完整的功能文档、API 接口说明及单元测试用例
+- **配置格式**：项目配置必须采用 TOML 格式（`pyproject.toml`），遵循 PEP 621 规范
+
+### 1.1.2 TOML 配置规范
+
+本项目采用 **TOML（Tom's Obvious, Minimal Language）** 作为配置文件格式，基于以下优势考量：
+
+#### 1.1.2.1 TOML 相比 JSON 的核心优势
+
+| 维度 | TOML 优势 | 对项目价值 |
+|-----|----------|----------|
+| **注释支持** | 原生支持 `#` 注释，便于配置说明和文档维护 | ✅ 可为依赖配置、工具配置添加详细注释 |
+| **人类可读性** | `key = value` 格式更直观，接近自然语言 | ✅ 提升团队协作时的配置可理解性 |
+| **类型原生支持** | 日期时间、整数、浮点数、布尔值等原生支持 | ✅ `timestamp` 可直接表示为日期时间类型 |
+| **分层结构** | `[section]` 语法实现清晰的配置分组 | ✅ 依赖管理 `[dependencies]` / `[dev-dependencies]` 分组 |
+| **环境变量集成** | `${VAR}` 语法支持环境变量引用 | ✅ 便于不同环境差异化配置 |
+| **多行字符串** | `"""` 三引号支持长文本配置 | ✅ 便于复杂的 schema 配置或文档说明 |
+| **版本控制友好** | 单行变更通常只影响单个配置项 | ✅ Git diff 更清晰，便于 Code Review |
+
+#### 1.1.2.2 TOML 配置结构定义
+
+```toml
+[project]
+name = "review-memory-skill"
+version = "1.0.0"
+requires-python = ">=3.14"
+description = "系统性复盘与记忆管理技能"
+readme = "README.md"
+
+[dependencies]
+fastapi = "^0.115.0"
+pyyaml = "^6.0"
+graphql-core = "^3.3.0"
+python-frontmatter = "^1.1.0"
+starlette = "^0.40.0"
+uvicorn = "^0.32.0"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "black>=24.0.0",
+    "flake8>=7.0.0",
+    "mypy>=1.13.0",
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py314"]
+
+[tool.mypy]
+python_version = "3.14"
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+```
+
+#### 1.1.2.3 TOML 配置使用场景
+
+| 配置场景 | TOML 优势体现 | 具体应用 |
+|---------|-------------|---------|
+| **项目元数据** | `[project]` 标准区块 | name, version, description, requires-python |
+| **依赖管理** | 分组 + 版本约束 | `[dependencies]` / `[project.optional-dependencies]` |
+| **工具配置** | `[tool.xxx]` 命名空间 | black, mypy, pytest 等工具配置 |
+| **环境变量** | `${VAR}` 语法 | API Key、数据库连接等敏感配置 |
+| **多环境配置** | 条件组或外部文件 | 开发/测试/生产环境差异化 |
+| **GraphQL 配置** | 多行字符串支持 | schema 定义、type 配置等长文本 |
+
+#### 1.1.2.4 配置规范约束
+
+- ✅ **必须使用** `pyproject.toml` 作为项目根配置文件
+- ✅ 依赖声明必须使用 PEP 621 规范格式
+- ✅ 工具配置必须使用 `[tool.xxx]` 标准命名空间
+- ❌ **禁止使用** JSON 格式作为项目配置文件（除非要与特定工具集成）
+- ❌ **禁止硬编码** 敏感信息（使用环境变量 `${VAR}` 引用）
+- ❌ **禁止删除** 已有配置项的注释（保留配置意图说明）
+
 ### 1.2 设计哲学（Design Philosophy - Pure GraphQL & MyST）
 
 本技能的设计理念深度融合 **GraphQL 的完整类型系统与查询语义** 与 **MyST (Markedly Structured Text) 的人类可读优先理念**：

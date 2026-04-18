@@ -2,6 +2,12 @@
 
 > **依据文档**: `spec.md` (v3.0, GraphQL-Native Edition, 2026-04-17)
 > **规范依据**: GraphQL Specification (June 2018) + GraphQL Relay Specification
+> **技术栈要求**:
+> - Python 3.14+ 及更高版本
+> - FastAPI 框架（与 Python 3.14+ 兼容）
+> - PEP 8 编码规范
+> - 完整的功能文档、API 接口说明及单元测试用例
+> - **TOML 配置文件格式（遵循 PEP 621 规范）**
 
 ---
 
@@ -50,6 +56,42 @@
 - [ ] 存储路径配置正确：
   - [ ] `.storage/reviews/` — 业务数据存储路径
   - [ ] `.cache/reviews/` — 缓存存储路径
+
+### §1.5 TOML 配置规范验证（PEP 621 Compliance）
+- [ ] **TOML 配置文件存在性验证**：
+  - [ ] `pyproject.toml` 文件存在于项目根目录
+  - [ ] 文件格式符合 TOML 规范（可通过 `toml-validate` 工具校验）
+- [ ] **PEP 621 项目元数据验证**：
+  - [ ] `[project]` 区块存在且包含必要字段：
+    - [ ] `name` — 项目名称
+    - [ ] `version` — 版本号（语义化版本）
+    - [ ] `requires-python` — Python 版本要求（`>=3.14`）
+    - [ ] `description` — 项目描述
+  - [ ] `readme` 字段指定 README 文件路径
+- [ ] **依赖配置验证**：
+  - [ ] `[dependencies]` 区块包含所有运行时依赖
+    - [ ] FastAPI 框架依赖已声明
+    - [ ] pyyaml 依赖已声明
+    - [ ] graphql-core 依赖已声明
+    - [ ] python-frontmatter 依赖已声明
+  - [ ] `[project.optional-dependencies]` 区块包含开发依赖
+    - [ ] `dev` 分组包含 pytest, black, flake8, mypy 等
+- [ ] **工具配置验证**：
+  - [ ] `[tool.black]` 区块存在，配置代码格式化规则
+  - [ ] `[tool.mypy]` 区块存在，配置类型检查规则
+  - [ ] `[tool.pytest.ini_options]` 区块存在，配置测试选项
+- [ ] **TOML 语法规范验证**：
+  - [ ] 所有键名使用小写字母和下划线（snake_case）
+  - [ ] 字符串值使用双引号或三引号
+  - [ ] 数组和表格语法正确嵌套
+  - [ ] 无尾随逗号或非法转义字符
+- [ ] **环境变量引用验证**：
+  - [ ] 敏感信息使用 `${VAR}` 语法引用环境变量
+  - [ ] 无硬编码的 API Key、密码或密钥
+- [ ] **禁止项验证**：
+  - [ ] ❌ 项目根目录不存在 `requirements.txt`（应使用 `pyproject.toml` 管理依赖）
+  - [ ] ❌ 不存在 JSON 格式的配置文件（除非要与特定工具集成）
+  - [ ] ❌ 配置项注释未被删除（保留配置意图说明）
 
 ---
 

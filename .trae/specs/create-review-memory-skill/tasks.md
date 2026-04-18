@@ -3,6 +3,11 @@
 > **基于**: `spec.md` v3.0 (GraphQL-Native Edition)
 > **生成日期**: 2026-04-17
 > **总阶段数**: 11 个 Phase | **总任务数**: 68 个主任务 | **子任务数**: 240+
+> **技术栈要求**:
+> - Python 3.14+ 及更高版本
+> - FastAPI 框架（与 Python 3.14+ 兼容）
+> - PEP 8 编码规范
+> - 完整的功能文档、API 接口说明及单元测试用例
 
 ---
 
@@ -75,6 +80,17 @@ Phase 1 (Schema) ─────────────────────
   - [ ] 1.1.7 创建 `scripts/` 目录
   - [ ] 1.1.8 创建 `plugins/` 目录
   - [ ] 1.1.9 配置 `.gitignore`（`.cache/` 纳入忽略列表）
+
+- [ ] **Task 1.1.10: 项目依赖配置（TOML 规范）**
+  - [ ] 1.1.10.1 创建 `pyproject.toml` 文件，遵循 PEP 621 规范
+  - [ ] 1.1.10.2 配置 Python 版本要求：`requires-python = ">=3.14"`
+  - [ ] 1.1.10.3 在 `[project]` 区块配置项目元数据（name, version, description）
+  - [ ] 1.1.10.4 在 `[dependencies]` 区块添加 FastAPI 框架依赖
+  - [ ] 1.1.10.5 在 `[project.optional-dependencies]` 区块配置开发依赖（dev 分组）
+  - [ ] 1.1.10.6 在 `[tool.black]` 区块配置代码格式化规则
+  - [ ] 1.1.10.7 在 `[tool.mypy]` 区块配置类型检查规则
+  - [ ] 1.1.10.8 在 `[tool.pytest.ini_options]` 区块配置测试选项
+  - [ ] 1.1.10.9 配置敏感信息使用 `${VAR}` 环境变量引用（禁止硬编码）
 
 - [ ] **Task 1.2: 定义自定义标量类型 (Custom Scalar Types)**
   - [ ] 1.2.1 定义 `ReviewID` 标量类型
